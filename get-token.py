@@ -30,10 +30,7 @@ token = requests.post(url='https://www.strava.com/api/v3/oauth/token',
                             'code': code,
                             'grant_type': 'authorization_code'})
 
-# Save json response as a variable
+# Save response
 strava_token = token.json()
-
-print(strava_token)
-
 with open('strava_token.json', 'w') as outfile:
     json.dump(strava_token, outfile)
