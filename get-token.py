@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+#
+# Approach for accessing Strava data based on https://www.grace-dev.com/python-apis/strava-api
+# Copyright (C) 2022 yokuha
 import json
-import os
 import requests
-import time
 import webbrowser
 
 

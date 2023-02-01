@@ -112,5 +112,6 @@ for i in range(len(activity_list.json())):
     if 'private_note' in activity and len(activity['private_note']) > 0:
         info[activity_id].update({'private_note': activity['private_note']})
 
+# save updated data
 with open(info_file, 'w', encoding='utf-8') as db:
     json.dump(info, db, indent = 4)
