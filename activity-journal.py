@@ -27,7 +27,7 @@ mdFile.new_paragraph(athlete["bio"].replace('\n', '\n    '))
 mdFile.new_paragraph()
 
 mdFile.new_header(level=1, title='Activities')
-for id in info.keys():
+for id in sorted(info, reverse=True):
     data = info[id]
     mdFile.new_paragraph()
     if 'date' in data and None != data['date'] and len(data['date']) > 0:
