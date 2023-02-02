@@ -20,7 +20,7 @@ command line...
 4. Convert the markdown to, e.g., PDF using `pandoc`. To handle UTF codes well,
 I suggest to use xelatex as a conversion engine:
 ```
-pandoc --pdf-engine=xelatex -o 73840635.pdf 73840635.md
+pandoc --pdf-engine=xelatex -o <athlete_id>.pdf <athlete_id>.md
 ```
 
 
