@@ -9,6 +9,9 @@ None. For now, clone the git repository and run the scripts.
 
 # Usage
 
+1. Register your own API app on the Strava website and create a `settings.py`
+   from `settings-template.py` file with the corresponding info.
+
 2. Get your latest activities from Strava and add them to your local database
 running `update-data.py`. If necessary, i.e., the first time, this will g
 through a somewhat cumbersome process of getting you a Strava access token,
