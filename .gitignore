@@ -1,7 +1,9 @@
+settings.py
 *.html
 *.json
 7*.md
 *.pdf
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

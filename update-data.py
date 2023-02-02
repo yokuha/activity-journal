@@ -7,13 +7,7 @@ import os
 import requests
 import time
 
-
-# initial/basic access settings
-client_id = '101535'
-client_secret = 'ce9c2353e1be45d0ad661cdce118886d2ce688b1'
-redirect_uri = 'http://localhost/'
-
-
+from settings import *
 
 def request_token(client_id, client_secret, code):
     response = requests.post(url='https://www.strava.com/oauth/token',
@@ -65,7 +59,7 @@ if not os.path.exists('./strava_token.json'):
     write_token(strava_token)
 
 
-# get token data, updating as necessary
+# get token data and update as necessary
 data = get_token()
 if data['expires_at'] < time.time():
     print('Refreshing token')

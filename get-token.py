@@ -6,11 +6,7 @@ import json
 import requests
 import webbrowser
 
-
-# Initial Settings
-client_id = '101535'
-client_secret = 'ce9c2353e1be45d0ad661cdce118886d2ce688b1'
-redirect_uri = 'http://localhost/'
+from settings import *
 
 # Authorization URL
 request_url = f'http://www.strava.com/oauth/authorize?client_id={client_id}' \
