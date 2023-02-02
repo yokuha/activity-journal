@@ -103,6 +103,7 @@ for i in range(len(activity_list.json())):
     if activity_id not in info:
         info[activity_id] = {}
     info[activity_id].update({'name': activity['name']})
+    info[activity_id].update({'date': activity['start_date']})
     info[activity_id].update({'note': activity['description']})
     if 'private_note' in activity and len(activity['private_note']) > 0:
         info[activity_id].update({'private_note': activity['private_note']})
