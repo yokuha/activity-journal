@@ -17,13 +17,18 @@ command line...
 
 3. Create a markdown file of the data using `activity-journal.py`.
 
-4. Convert the markdown to, e.g., PDF using `pandoc ...`
+4. Convert the markdown to, e.g., PDF using `pandoc`. To handle UTF codes well,
+I suggest to use xelatex as a conversion engine:
+```
+pandoc --pdf-engine=xelatex -o 73840635.pdf 73840635.md
+```
 
 
 # Further comments
 
 Lot's to do, ... as my time allows;-)
-- get all (updated) activities from a specified date on
+- get all (updated) activities, e.g., from a specified date on or for a
+  specified date range (input welcome)
 - nicer output
 
 If you have any ideas on how to improve `activity journal` please let me know
