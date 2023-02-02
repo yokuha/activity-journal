@@ -9,11 +9,11 @@ None. For now, clone the git repository and run the scripts.
 
 # Usage
 
-1. Make sure you have a local copy of your access token. Can get one using
-`get-token.py`.
-
 2. Get your latest activities from Strava and add them to your local database
-running `update-data.py`.
+running `update-data.py`. If necessary, i.e., the first time, this will g
+through a somewhat cumbersome process of getting you a Strava access token,
+which you have to manually copy from the redirect URL after authorization to the
+command line...
 
 3. Create a markdown file of the data using `activity-journal.py`.
 

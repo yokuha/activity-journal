@@ -6,6 +6,7 @@ import json
 import os
 import requests
 import time
+import webbrowser
 
 from settings import *
 
