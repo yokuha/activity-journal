@@ -1,0 +1,7 @@
+verbosity: INFO
+pdf-engine: xelatex
+
+variables:
+    geometry: a4
+    geometry: margin=20mm
+    mainfont: Palatino
