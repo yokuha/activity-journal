@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 #
 # Approach for accessing Strava data based on https://www.grace-dev.com/python-apis/strava-api
-# Copyright (C) 2022 yokuha
+# Copyright (C) 2023 yokuha
 import json
 import mdutils
 from mdutils.mdutils import MdUtils
 import sys
-
 
 athlete_id = sys.argv[1]
 
@@ -23,17 +22,20 @@ with open(info_file, 'r', encoding='utf-8') as db:
 mdFile = MdUtils(file_name=f'{athlete_id}.md', title=f'Activity journal of athlete {athlete_id} ({athlete["username"]})')
 mdFile.new_header(level=1, title='Athlete info')
 mdFile.new_paragraph(f'{athlete["firstname"]} {athlete["lastname"]}')
-mdFile.new_paragraph(athlete["bio"].replace('\n', '\n    '))
-mdFile.new_paragraph()
+mdFile.new_paragraph(athlete["bio"].replace('\n', '    \n'))
+mdFile.new_paragraph('\clearpage')
 
 mdFile.new_header(level=1, title='Activities')
 for id in sorted(info, reverse=True):
     data = info[id]
-    mdFile.new_paragraph()
+    # print activity title (date)
     if 'date' in data and None != data['date'] and len(data['date']) > 0:
         mdFile.new_header(level=2, title=f'{data["name"]} ({data["date"].replace("T", " ").replace("Z", " h")})')
     else:
-        mdFile.new_header(level=2, title=data["name"])
+        mdFile.new_header(level=2, title=data['name'])
+    # print URL on Strava
+    mdFile.new_paragraph(f'``https://www.strava.com/activities/{id})``')
+    # print notes
     anynote = False
     if 'note' in data and None != data['note'] and len(data['note']) > 0:
         mdFile.new_paragraph(data['note'].replace('\r', '   '))
