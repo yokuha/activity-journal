@@ -1,5 +1,7 @@
-# verbosity: INFO
+from: gfm
 pdf-engine: xelatex
+to: pdf
+# verbosity: INFO
 
 variables:
     geometry: a4paper,margin=20mm

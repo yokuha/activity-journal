@@ -18,6 +18,7 @@
 import json
 import mdutils
 from mdutils.mdutils import MdUtils
+import re
 from settings import athlete_id
 
 # load athlete and activities info
@@ -29,13 +30,24 @@ with open(activities_file, 'r', encoding='utf-8') as db:
     activities = json.load(db)
 
 
-# create mardown text of all info in the current athletes files
-mdFile = MdUtils(file_name=f'{athlete_id}.md', title=f'Activity journal of athlete {athlete_id} ({athlete["username"]})')
-mdFile.new_header(level=1, title='Athlete info')
-mdFile.new_paragraph(f'{athlete["firstname"]} {athlete["lastname"]}')
-mdFile.new_paragraph(athlete["bio"].replace('\n', '    \n'))
-mdFile.new_paragraph('\clearpage\n\n')
+def get(data, entry):
+    try:
+        if str != type(data[entry]):
+            return str(int(data[entry]))
+        return data[entry]
+    except:
+        if entry in ['AP', 'NP', 'calories']:
+            return '—'
+        return ''
 
+
+# create markdown text from info in the current athletes files
+mdFile = MdUtils(file_name=f'{athlete_id}.md', title=f'Activity journal of athlete {athlete_id} ({athlete["username"]})')
+mdFile.new_header(level=1, title=f'Athlete info: {athlete["firstname"]} {athlete["lastname"]}')
+mdFile.new_paragraph(f'``https://www.strava.com/athletes/{athlete_id}``\n')
+mdFile.new_paragraph(athlete["bio"].replace('\n', '    \n'))
+
+# and print info on the athletes activities
 mdFile.new_header(level=1, title='Activities')
 for id in sorted(activities, reverse=True):
     data = activities[id]
@@ -45,20 +57,18 @@ for id in sorted(activities, reverse=True):
     else:
         mdFile.new_header(level=2, title=data['name'])
     # print URL on Strava
-    mdFile.new_paragraph(f'``https://www.strava.com/activities/{id})``')
-    # print notes
-    anynote = False
+    mdFile.new_paragraph(f'``https://www.strava.com/activities/{id}``\n')
+    # print some basic data of activity
+    mdFile.new_paragraph(f'AP = {get(data, "AP")} W, NP = {get(data, "NP")} W, calories = {get(data, "calories")} kcal\n')
+    # print public and private notes
+    public_note = ''
     if 'note' in data and None != data['note'] and len(data['note']) > 0:
-        mdFile.new_paragraph(data['note'].replace('\r', '   '))
-        mdFile.new_paragraph('---\n')
-        anynote = True
+        public_note = re.sub(r'-- myWindsock Report.*END --', '', data['note'], flags=re.DOTALL).replace('\r', '   ')
+    private_note = ''
     if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
-        mdFile.new_paragraph()
-        mdFile.new_header(level=3, title='Private notes')
-        mdFile.new_paragraph(data['private_note'].replace('\r', '   '))
-        mdFile.new_paragraph('---\n')
-        anynote = True
-    if not anynote:
-        mdFile.new_paragraph('\n')
-        mdFile.new_paragraph('---\n')
+        private_note = data['private_note'].replace('\r', '   ')
+    # via html table
+    mdFile.new_paragraph(f'{private_note}\n{public_note}\n')
+
+# save markdown file
 mdFile.create_md_file()

@@ -41,3 +41,4 @@ Lot's to do, ... as my time allows;-)
 - get all (updated) activities, e.g., from a specified date on or for a
   specified date range (input welcome)
 - nicer output
+- add Strava comments to output

@@ -23,13 +23,14 @@ import webbrowser
 
 from settings import *
 
+
+# getting, updating, saving the Strava token
 def request_token(client_id, client_secret, code):
     response = requests.post(url='https://www.strava.com/oauth/token',
                              data={'client_id': client_id, 'client_secret':
                                    client_secret, 'code': code, 'grant_type':
                                    'authorization_code'})
     return response
-
 
 
 def refresh_token(client_id, client_secret, refresh_token):
@@ -41,17 +42,29 @@ def refresh_token(client_id, client_secret, refresh_token):
     return response
 
 
-
 def write_token(token):
     with open('strava_token.json', 'w') as outfile:
         json.dump(token, outfile)
-
 
 
 def get_token():
     with open('strava_token.json', 'r') as token:
         data = json.load(token)
     return data
+
+
+# store Strava info in local json file
+translation = {'name': 'name',
+               'date': 'start_date',
+               'note': 'description',
+               'private_note': 'private_note',
+               'AP': 'average_watts',
+               'NP': 'weighted_average_watts',
+               'calories': 'calories'
+               }
+def store(name, strava, local):
+    if translation[name] in strava and len(str(strava[translation[name]])) > 0:
+        local.update({name: strava[translation[name]]})
 
 
 
@@ -115,11 +128,8 @@ for i in range(len(activity_list.json())):
     assert int(activity_id) == activity['id']
     if activity_id not in activities:
         activities[activity_id] = {}
-    activities[activity_id].update({'name': activity['name']})
-    activities[activity_id].update({'date': activity['start_date']})
-    activities[activity_id].update({'note': activity['description']})
-    if 'private_note' in activity and len(activity['private_note']) > 0:
-        activities[activity_id].update({'private_note': activity['private_note']})
+    for n in translation:
+        store(n, activity, activities[activity_id])
 
 # save updated data
 with open(activities_file, 'w', encoding='utf-8') as db:
