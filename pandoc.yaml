@@ -1,7 +1,6 @@
-verbosity: INFO
+# verbosity: INFO
 pdf-engine: xelatex
 
 variables:
-    geometry: a4
-    geometry: margin=20mm
-    mainfont: Palatino
+    geometry: a4paper,margin=20mm
+    mainfont: Gill Sans

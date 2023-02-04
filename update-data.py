@@ -1,7 +1,20 @@
 #!/usr/bin/env python
 #
-# Approach for accessing Strava data based on https://www.grace-dev.com/python-apis/strava-api
-# Copyright (C) 2022 yokuha
+# activity-journal -- create a journal of the notes of your own Strava activities.
+# Copyright (C) 2023 yokuha
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
+
 import json
 import os
 import requests
@@ -80,17 +93,17 @@ with open(f'{athlete_id}-athlete.json', 'w', encoding='utf-8') as db:
     json.dump(athlete, db, ensure_ascii=False, indent=4)
 
 # define activities-filename
-info_file = f'{athlete_id}-info.json'
+activities_file = f'{athlete_id}-activities.json'
 
 # get activity list
 activity_list_url = f"https://www.strava.com/api/v3/athlete/activities?access_token={access_token}"
 activity_list = requests.get(activity_list_url)
 
 # load already saved info
-info = {}
+activities = {}
 try:
-    with open(info_file, 'r', encoding='utf-8') as db:
-        info = json.load(db)
+    with open(activities_file, 'r', encoding='utf-8') as db:
+        activities = json.load(db)
 except FileNotFoundError:
     pass
 
@@ -100,14 +113,14 @@ for i in range(len(activity_list.json())):
     activity_url = f"https://www.strava.com/api/v3/activities/{activity_id}?access_token={access_token}"
     activity = requests.get(activity_url).json()
     assert int(activity_id) == activity['id']
-    if activity_id not in info:
-        info[activity_id] = {}
-    info[activity_id].update({'name': activity['name']})
-    info[activity_id].update({'date': activity['start_date']})
-    info[activity_id].update({'note': activity['description']})
+    if activity_id not in activities:
+        activities[activity_id] = {}
+    activities[activity_id].update({'name': activity['name']})
+    activities[activity_id].update({'date': activity['start_date']})
+    activities[activity_id].update({'note': activity['description']})
     if 'private_note' in activity and len(activity['private_note']) > 0:
-        info[activity_id].update({'private_note': activity['private_note']})
+        activities[activity_id].update({'private_note': activity['private_note']})
 
 # save updated data
-with open(info_file, 'w', encoding='utf-8') as db:
-    json.dump(info, db, indent = 4)
+with open(activities_file, 'w', encoding='utf-8') as db:
+    json.dump(activities, db, indent = 4)
