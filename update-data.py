@@ -108,9 +108,6 @@ with open(f'{athlete_id}-athlete.json', 'w', encoding='utf-8') as db:
 # define activities-filename
 activities_file = f'{athlete_id}-activities.json'
 
-# get activity list
-activity_list_url = f"https://www.strava.com/api/v3/athlete/activities?access_token={access_token}"
-activity_list = requests.get(activity_list_url)
 
 # load already saved info
 activities = {}
@@ -120,16 +117,38 @@ try:
 except FileNotFoundError:
     pass
 
-# get detailed activities and save to updated info_file
-for i in range(len(activity_list.json())):
-    activity_id = str(activity_list.json()[i]['id'])
-    activity_url = f"https://www.strava.com/api/v3/activities/{activity_id}?access_token={access_token}"
-    activity = requests.get(activity_url).json()
-    assert int(activity_id) == activity['id']
-    if activity_id not in activities:
-        activities[activity_id] = {}
-    for n in translation:
-        store(n, activity, activities[activity_id])
+# set up loading of activities -- for last n = 10 weeks
+now = int(time.time()) + 10
+week = 605000 # 604800 s to a week
+before = now
+after = now - week
+page = 1
+per_page = 100
+for w in range(0, 30):
+    # get activity list for that week
+    print(f'getting data for week -{w}: epoch from {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(before))} to {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(after))}')
+    activity_list_url = f"https://www.strava.com/api/v3/athlete/activities?access_token={access_token}&after={after}&before={before}&page={page}&per_page={per_page}"
+    activity_list = requests.get(activity_list_url)
+    print(f'fetched data for week -{w}: {str(activity_list)}')
+
+    # get detailed activities and store in dictionary
+    for i in range(len(activity_list.json())):
+        activity_id = str(activity_list.json()[i]['id'])
+        activity_url = f"https://www.strava.com/api/v3/activities/{activity_id}?access_token={access_token}"
+        activity = requests.get(activity_url).json()
+        try:
+            assert int(activity_id) == activity['id']
+            if activity_id not in activities:
+                activities[activity_id] = {}
+                for n in translation:
+                    store(n, activity, activities[activity_id])
+        except KeyError:
+            print('KeyError .. continuing')
+
+    # wait 15 min before fetching next week
+    time.sleep(1000)
+    after -= week
+    before -= week
 
 # save updated data
 with open(activities_file, 'w', encoding='utf-8') as db:
