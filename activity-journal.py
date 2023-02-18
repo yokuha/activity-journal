@@ -72,3 +72,10 @@ for id in sorted(activities, reverse=True):
 
 # save markdown file
 mdFile.create_md_file()
+
+
+
+### Local Variables:
+### coding: utf-8
+### truncate-lines: t
+### End:

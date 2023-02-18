@@ -117,39 +117,51 @@ try:
 except FileNotFoundError:
     pass
 
-# set up loading of activities -- for last n = 10 weeks
-now = int(time.time()) + 10
-week = 605000 # 604800 s to a week
-before = now
-after = now - week
+
+# set up loading of activities for fetch_week range defined in settings.py
+week_duration = 604800 # s to a week
 page = 1
 per_page = 100
-for w in range(0, 30):
+now = int(time.time())
+for w in fetch_weeks:
+    before = now + w * week_duration
+    after = now + (w-1) * week_duration
     # get activity list for that week
     print(f'getting data for week -{w}: epoch from {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(before))} to {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(after))}')
     activity_list_url = f"https://www.strava.com/api/v3/athlete/activities?access_token={access_token}&after={after}&before={before}&page={page}&per_page={per_page}"
     activity_list = requests.get(activity_list_url)
-    print(f'fetched data for week -{w}: {str(activity_list)}')
+    print(f'fetched activity list for week {w}: {str(activity_list)}')
 
     # get detailed activities and store in dictionary
     for i in range(len(activity_list.json())):
-        activity_id = str(activity_list.json()[i]['id'])
-        activity_url = f"https://www.strava.com/api/v3/activities/{activity_id}?access_token={access_token}"
-        activity = requests.get(activity_url).json()
-        try:
-            assert int(activity_id) == activity['id']
-            if activity_id not in activities:
-                activities[activity_id] = {}
-                for n in translation:
-                    store(n, activity, activities[activity_id])
-        except KeyError:
-            print('KeyError .. continuing')
+        for attempt in range(3):
+            # try to get data for next activities for three times, handling the Strava API timeout of 15 min
+            try:
+                activity_id = str(activity_list.json()[i]['id'])
+                activity_url = f'https://www.strava.com/api/v3/activities/{activity_id}?access_token={access_token}'
+                activity = requests.get(activity_url).json()
+                assert int(activity_id) == activity['id']
+                if activity_id not in activities:
+                    activities[activity_id] = {}
+                    for n in translation:
+                        store(n, activity, activities[activity_id])
+            except KeyError:
+                print('KeyError ... retrying in 15 min', end = '')
+                # wait 15 min before continuing
+                time.sleep(15*60)
+                print('... continuing')
+            else:
+                break
+        else:
+            print(f'Could not obtain data for https://www.strava.com/api/v3/activities/{activity_id}')
 
-    # wait 15 min before fetching next week
-    time.sleep(1000)
-    after -= week
-    before -= week
+        # save updated data
+        with open(activities_file, 'w', encoding='utf-8') as db:
+            json.dump(activities, db, indent = 4)
 
-# save updated data
-with open(activities_file, 'w', encoding='utf-8') as db:
-    json.dump(activities, db, indent = 4)
+
+
+### Local Variables:
+### coding: utf-8
+### truncate-lines: t
+### End:

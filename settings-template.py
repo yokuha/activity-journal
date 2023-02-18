@@ -24,3 +24,13 @@ redirect_uri = 'http://localhost/'
 
 # athlete_id
 athlete_id = '...'
+
+# date (week) range for which to fetch data
+fetch_weeks = range(0,-1,-1) # default is to fetch data only for the last/current week (last 7 days)
+
+
+
+### Local Variables:
+### coding: utf-8
+### truncate-lines: t
+### End:
