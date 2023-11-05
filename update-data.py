@@ -127,7 +127,7 @@ for w in fetch_weeks:
     before = now + w * week_duration
     after = now + (w-1) * week_duration
     # get activity list for that week
-    print(f'getting data for week -{w}: epoch from {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(before))} to {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(after))}')
+    print(f'getting data for week {w}: epoch from {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(before))} to {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(after))}')
     activity_list_url = f"https://www.strava.com/api/v3/athlete/activities?access_token={access_token}&after={after}&before={before}&page={page}&per_page={per_page}"
     activity_list = requests.get(activity_list_url)
     print(f'fetched activity list for week {w}: {str(activity_list)}')

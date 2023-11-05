@@ -18,6 +18,7 @@
 # copy these definitions to a file `settings'py` and fill it with your own information.
 
 # settings for authentication and accessing Strava's API
+# see https://www.strava.com/settings/api for the corresponding data
 client_id = '...'
 client_secret = '...'
 redirect_uri = 'http://localhost/'

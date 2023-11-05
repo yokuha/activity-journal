@@ -14,20 +14,18 @@ None. For now, clone the git repository and run the scripts.
 
 1. Register your own API app on the Strava website and create a `settings.py`
    from `settings-template.py` file with the corresponding info.
-
 2. Get your latest activities from Strava and add them to your local database
-running `update-data.py`. If necessary, i.e., the first time, this will g
-through a somewhat cumbersome process of getting you a Strava access token,
-which you have to manually copy from the redirect URL after authorization to the
-command line...
-
+   running `update-data.py`. If necessary, i.e., the first time, this will go
+   through a somewhat cumbersome process of getting you a Strava access token,
+   which you have to manually copy from the redirect URL after authorization to
+   the command line...
 3. Create a markdown file of the data using `activity-journal.py`.
-
 4. Convert the markdown to, e.g., PDF using `pandoc`. To handle UTF codes well,
-I suggest to use xelatex as a conversion engine; this and further options are
-specified via a defaults file.
+   I suggest to use xelatex as a conversion engine; this and further options are
+   specified via a defaults file.
+
 ```
-andoc -d pandoc.yaml -o <athlete_id>.pdf <athlete_id>.md
+pandoc -d pandoc.yaml -o <athlete_id>.pdf <athlete_id>.md
 ```
 
 

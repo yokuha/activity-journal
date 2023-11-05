@@ -6,3 +6,5 @@ to: pdf
 variables:
     geometry: a4paper,margin=20mm
     mainfont: Gill Sans
+    title: Strava activity journal
+

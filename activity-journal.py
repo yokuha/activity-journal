@@ -73,6 +73,12 @@ for id in sorted(activities, reverse=True):
 # save markdown file
 mdFile.create_md_file()
 
+print('activity journal updated, creating PDF')
+
+# create updated PDF
+import subprocess
+subprocess.call(['pandoc', '-d', 'pandoc.yaml', '-o', f'{athlete_id}.pdf', f'{athlete_id}.md'])
+
 
 
 ### Local Variables:
