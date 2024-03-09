@@ -27,9 +27,10 @@ from settings import *
 # getting, updating, saving the Strava token
 def request_token(client_id, client_secret, code):
     response = requests.post(url='https://www.strava.com/oauth/token',
-                             data={'client_id': client_id, 'client_secret':
-                                   client_secret, 'code': code, 'grant_type':
-                                   'authorization_code'})
+                             data={'client_id': client_id,
+                                   'client_secret': client_secret,
+                                   'code': code,
+                                   'grant_type': 'authorization_code'})
     return response
 
 
