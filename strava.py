@@ -35,38 +35,6 @@ translation = {'name': 'name',
                }
 
 
-def check_create_token():
-    """Make sure we have a local current Strava API token
-
-    Checks if we have a Strava API token saved in the local json file and if
-    there is non available goes through the manual webbroswer authentication to
-    get a URL code as user input, requests an API token from it, and then stores
-    this locally.
-
-    :return: Strava API token
-    """
-    if not os.path.exists('./strava_token.json'):
-        request_url = f'http://www.strava.com/oauth/authorize?client_id={client_id}' \
-                      f'&response_type=code&redirect_uri={redirect_uri}' \
-                      f'&approval_prompt=force' \
-                      f'&scope=profile:read_all,activity:read_all,activity:write'
-        print('Please authorize the app and copy&paste below the generated code!')
-        print('P.S: you can find the code in the redirect URL after you authorized Strava in the browser')
-        webbrowser.open(request_url)
-        code = input('Insert the code from the url: ')
-        response = requests.post(url='https://www.strava.com/oauth/token',
-                                 data={'client_id': client_id, 'client_secret':
-                                       client_secret, 'code': code, 'grant_type':
-                                       'authorization_code'})
-        print(f'Request-token response: {response}')
-
-        # Save json response as a variable
-        strava_token = response.json()
-        # Save tokens to file
-        write_token(strava_token)
-    return get_token()
-
-
 def refresh_token():
     """Refreshing the Strava API token
 
@@ -101,6 +69,43 @@ def store(name, strava, local):
     """Store value locally"""
     if translation[name] in strava and len(str(strava[translation[name]])) > 0:
         local.update({name: strava[translation[name]]})
+
+
+def check_create_token():
+    """Make sure we have a local current Strava API token
+
+    Checks if we have a Strava API token saved in the local json file and if
+    there is non available goes through the manual webbroswer authentication to
+    get a URL code as user input, requests an API token from it, and then stores
+    this locally.
+
+    :return: Strava API token
+    """
+    if not os.path.exists('./strava_token.json'):
+        request_url = f'http://www.strava.com/oauth/authorize?client_id={client_id}' \
+                      f'&response_type=code' \
+                      f'&redirect_uri={redirect_uri}' \
+                      f'&approval_prompt=force' \
+                      f'&scope=profile:read_all,activity:read_all,activity:write'
+        print('Please authorize the app and copy&paste below the generated code!')
+        print('PS: you can find the code in the redirect URL after you authorized Strava in the browser')
+        webbrowser.open(request_url)
+        code = input('Insert the code from the url: ')
+        response = requests.post(url='https://www.strava.com/oauth/token',
+                                 data={'client_id': client_id,
+                                       'client_secret': client_secret,
+                                       'code': code,
+                                       'grant_type': 'authorization_code'}
+                                 )
+        print(f'Request-token response: {response}')
+
+        # Save json response as a variable
+        strava_token = response.json()
+        # Save tokens to file
+        write_token(strava_token)
+    return get_token()
+
+
 
 
 
