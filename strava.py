@@ -49,37 +49,25 @@ def check_create_token():
         request_url = f'http://www.strava.com/oauth/authorize?client_id={client_id}' \
                       f'&response_type=code&redirect_uri={redirect_uri}' \
                       f'&approval_prompt=force' \
-                      f'&scope=profile:read_all,activity:read_all'
+                      f'&scope=profile:read_all,activity:read_all,activity:write'
         print('Please authorize the app and copy&paste below the generated code!')
         print('P.S: you can find the code in the redirect URL after you authorized Strava in the browser')
         webbrowser.open(request_url)
         code = input('Insert the code from the url: ')
-        token = request_token(code)
+        response = requests.post(url='https://www.strava.com/oauth/token',
+                                 data={'client_id': client_id, 'client_secret':
+                                       client_secret, 'code': code, 'grant_type':
+                                       'authorization_code'})
+        print(f'Request-token response: {response}')
 
         # Save json response as a variable
-        strava_token = token.json()
+        strava_token = response.json()
         # Save tokens to file
         write_token(strava_token)
     return get_token()
 
 
-def request_token(code):
-    """Get a Strava API token
-
-    This creates an access token for the (manually created) authorization code,
-    stores it locally, and returns.
-
-    :return: Strava API token
-    """
-    response = requests.post(url='https://www.strava.com/oauth/token',
-                             data={'client_id': client_id, 'client_secret':
-                                   client_secret, 'code': code, 'grant_type':
-                                   'authorization_code'})
-    print(f'Request-token response: {response}')
-    return response
-
-
-def refresh_token(refresh_token):
+def refresh_token():
     """Refreshing the Strava API token
 
     :return: Strava API token
@@ -91,10 +79,8 @@ def refresh_token(refresh_token):
                                  data={'client_id': client_id,
                                        'client_secret': client_secret,
                                        'grant_type': 'refresh_token',
-                                       'refresh_token': refresh_token})
-        new_token = refresh_token(client_id, client_secret, data['refresh_token'])
-    strava_token = new_token.json()
-    write_token(strava_token)
+                                       'refresh_token': token['refresh_token']})
+        write_token(response.json())
     return get_token()
 
 
@@ -115,33 +101,6 @@ def store(name, strava, local):
     """Store value locally"""
     if translation[name] in strava and len(str(strava[translation[name]])) > 0:
         local.update({name: strava[translation[name]]})
-
-
-def check_create_token():
-    """Make sure we have a local current Strava API token
-
-    Chekcs if we have a Strava API token saved in the local json file and if
-    there is non available gors through the manual webbroswer authentication to
-    get one as user input and then stores it locally.
-
-    :return: Strava API token
-    """
-    if not os.path.exists('./strava_token.json'):
-        request_url = f'http://www.strava.com/oauth/authorize?client_id={client_id}' \
-                      f'&response_type=code&redirect_uri={redirect_uri}' \
-                      f'&approval_prompt=force' \
-                      f'&scope=profile:read_all,activity:read_all'
-        print('Please authorize the app and copy&paste below the generated code!')
-        print('P.S: you can find the code in the redirect URL after you authorized Strava in the browser')
-        webbrowser.open(request_url)
-        code = input('Insert the code from the url: ')
-        token = request_token(code)
-
-        # Save json response as a variable
-        strava_token = token.json()
-        # Save tokens to file
-        write_token(strava_token)
-    return get_token()
 
 
 
