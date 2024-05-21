@@ -30,6 +30,10 @@ athlete_id = '...'
 fetch_weeks = range(0,-1,-1) # default is to fetch data only for the last/current week (last 7 days)
 
 
+intervals_athlete_id = '...'
+intervals_api_key = '...'
+
+
 
 ### Local Variables:
 ### coding: utf-8
