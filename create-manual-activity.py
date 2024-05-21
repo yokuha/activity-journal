@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #
-# Strav auhtorization and functionality functions
 # Copyright (C) 2023,2024 yokuha <jokuha@icloud.com>
 #
 # This program is free software: you can redistribute it and/or modify it under
