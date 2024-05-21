@@ -19,6 +19,7 @@ import click
 import json
 import numpy as np
 import requests
+from scipy.ndimage import gaussian_filter
 from settings import *
 
 from matplotlib.image import NonUniformImage
@@ -30,35 +31,38 @@ import matplotlib.pyplot as plt
 @click.option('-a', '--activity', 'a_activity_id', default=None, required=True,
               help='i.icu activity ID')
 def main(a_activity_id):
+    # Get the activity's L-R-balance data
     api_key = b'Basic ' + base64.b64encode(f'API_KEY:{intervals_api_key}'.encode('ascii'))
-    # Get the Activity
-    # response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{intervals_athlete_id}/activities/{a_activity_id}',
-    #                         headers = {'Authorization': api_key}
-    #                         )
-    # get activity's L-R-balance data
     response = requests.get(url = f'https://intervals.icu/api/v1/activity/{a_activity_id}/streams?types=watts,left_right_balance',
-                            headers = {'Authorization': api_key}
-                            )
-    # extreact data
+                            headers = {'Authorization': api_key})
+    # extract data
     data = json.loads(response.text)
     power = np.array(data[0]['data'], dtype=int)
     for i in range(len(data[1]['data'])): # fix 'None' values in data
-        if int != type(data[1]['data'][i]): data[1]['data'][i] = 0
-    lrb =  np.array(data[1]['data'], dtype=int)
+        if int != type(data[1]['data'][i]): data[1]['data'][i] = np.NaN
+    lrb =  np.array(data[1]['data'])
 
     # create histogram
     xedges = np.arange(0,np.max(power)+11,10)
     yedges = np.arange(30,71,1)
+    xcenters = (xedges[:-1] + xedges[1:]) / 2
+    ycenters = (yedges[:-1] + yedges[1:]) / 2
     H, xedges, yedges = np.histogram2d(power, lrb, bins=(xedges, yedges))
-    # Histogram does not follow Cartesian convention (see Notes), therefore,
-    # transpose H for visualization purposes.
+    # Histogram does not follow Cartesian convention, therefore, transpose H for visualization purposes.
     H = H.T
+    # smooth data
+    H = gaussian_filter(H, 0.75)
+    # normalize to peak 100
+    H *= 100 / H.max()
 
     # plot data
-    X, Y = np.meshgrid(xedges, yedges)
-    plt.pcolormesh(X, Y, H, cmap='Reds')
+    levels = np.arange(0., 105, 10)
+    cs = plt.contourf(xcenters, ycenters, H, levels=levels, cmap='Reds', antialiased=True)
+    # proxy = [plt.Rectangle((0, 0), 1, 1, fc=fc) for fc in cs.get_facecolors()]
+    # plt.legend(proxy, [f'{lower:2.0f}--{upper:2.0f} \\%' for lower, upper in zip(levels[:-1]*100, levels[1:]*100)])
     plt.xlabel('power (W)')
-    plt.ylabel('L fraction of L-R balance (%)')
+    plt.ylabel('L fraction of L-R balance (\\%)')
+    plt.colorbar(label='rel. contribution (\\% of peak)')
     plt.show()
 
 
