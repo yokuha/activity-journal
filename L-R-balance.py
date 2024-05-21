@@ -39,14 +39,27 @@ def main(a_activity_id):
     response = requests.get(url = f'https://intervals.icu/api/v1/activity/{a_activity_id}/streams?types=watts,left_right_balance',
                             headers = {'Authorization': api_key}
                             )
-    #print(response.json())
+    # extreact data
     data = json.loads(response.text)
     power = np.array(data[0]['data'], dtype=int)
+    for i in range(len(data[1]['data'])): # fix 'None' values in data
+        if int != type(data[1]['data'][i]): data[1]['data'][i] = 0
     lrb =  np.array(data[1]['data'], dtype=int)
 
+    # create histogram
     xedges = np.arange(0,np.max(power)+11,10)
     yedges = np.arange(30,71,1)
     H, xedges, yedges = np.histogram2d(power, lrb, bins=(xedges, yedges))
+    # Histogram does not follow Cartesian convention (see Notes), therefore,
+    # transpose H for visualization purposes.
+    H = H.T
+
+    # plot data
+    X, Y = np.meshgrid(xedges, yedges)
+    plt.pcolormesh(X, Y, H, cmap='Reds')
+    plt.xlabel('power (W)')
+    plt.ylabel('L fraction of L-R balance (\%)')
+    plt.show()
 
 
 if __name__ == "__main__":
