@@ -58,7 +58,7 @@ def main(a_activity_id):
     X, Y = np.meshgrid(xedges, yedges)
     plt.pcolormesh(X, Y, H, cmap='Reds')
     plt.xlabel('power (W)')
-    plt.ylabel('L fraction of L-R balance (\%)')
+    plt.ylabel('L fraction of L-R balance (%)')
     plt.show()
 
 
