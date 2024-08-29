@@ -20,8 +20,10 @@ from settings import *
 # API_KEY for basic authentication
 auth_key = b'Basic ' + base64.b64encode(f'API_KEY:{api_key}'.encode('ascii'))
 
-# Filename for local storage of activity data
-activities_file = f'logbook-{athlete_id}-activity-data.json'
+# Filenames for local storage of activity data
+logbook_basename = f'logbook-{athlete_id}'
+activities_file = logbook_basename + '-activity-data.json'
+athlete_file = logbook_basename + '-athlete-info.json'
 
 # activity items to store locally and their logbook output names
 item_names = {'name': 'name',

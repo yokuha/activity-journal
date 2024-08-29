@@ -33,6 +33,14 @@ from iicu import *
 @click.option('-e', '--end', 'a_end', default=None, required=True,
               help='End of date range for data download')
 def main(a_begin, a_end):
+    # Get current athlete info and store locally
+    response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/profile',
+                            headers = {'Authorization': auth_key})
+    with open(athlete_file, 'w', encoding='utf-8') as db:
+        json.dump(json.loads(response.text), db, indent=4)
+
+
+
     # Get the list of activities in date range
     response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}',
                             headers = {'Authorization': auth_key})
