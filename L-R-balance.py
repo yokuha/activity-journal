@@ -18,6 +18,7 @@ import base64
 import click
 import json
 import numpy as np
+from pathlib import Path
 import requests
 from scipy.ndimage import gaussian_filter
 from settings import *
@@ -63,6 +64,7 @@ def main(a_activity_id):
     plt.xlabel('power (W)')
     plt.ylabel('L fraction of L-R balance (\\%)')
     plt.colorbar(label='rel. contribution (\\% of peak)')
+    plt.savefig(Path.home() / 'Downloads' / f'{a_activity_id}.png')
     plt.show()
 
 
