@@ -15,28 +15,22 @@
 
 
 import base64
-import settings
+from settings import *
 
-api_key = b'Basic ' + base64.b64encode(f'API_KEY:{settings.api_key}'.encode('ascii'))
+# API_KEY for basic authentication
+auth_key = b'Basic ' + base64.b64encode(f'API_KEY:{api_key}'.encode('ascii'))
 
+# Filename for local storage of activity data
+activities_file = f'logbook-{athlete_id}-activity-data.json'
 
-# # Strava info translation to local json file
-# translation = {'name': 'name',
-#                'date': 'start_date',
-#                'note': 'description',
-#                'private_note': 'private_note',
-#                'AP': 'average_watts',
-#                'NP': 'weighted_average_watts',
-#                'calories': 'calories'
-#                }
-
-
-
-# def store(name, strava, local):
-#     """Store value locally"""
-#     if translation[name] in strava and len(str(strava[translation[name]])) > 0:
-#         local.update({name: strava[translation[name]]})
-
+# activity items to store locally and their logbook output names
+item_names = {'name': 'name',
+              'date': 'start_date',
+              'note': 'description',
+              'AP': 'icu_average_watts',
+              'calories': 'calories',
+              'L/R': 'avg_lr_balance'
+              }
 
 
 

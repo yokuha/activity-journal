@@ -34,7 +34,7 @@ from iicu import *
 def main(a_activity_id):
     # Get the activity's L-R-balance data
     response = requests.get(url = f'https://intervals.icu/api/v1/activity/{a_activity_id}/streams?types=watts,left_right_balance',
-                            headers = {'Authorization': api_key})
+                            headers = {'Authorization': auth_key})
     # extract data
     data = json.loads(response.text)
     power = np.array(data[0]['data'], dtype=int)
