@@ -8,6 +8,20 @@ intervals.icu activities.
 
 None (yet). For now, clone the git repository and run the scripts.
 
+## Prerequisites
+
+You'll obviously need access to an account at https://intervals.icu – preferably
+your own or one of your client.
+
+In addition, you need a current Python installation with common packages, most
+noteworthy are probably
+
+* json
+* matplotlib
+* mdUtils
+* requests
+* scipy
+
 
 # Usage
 
