@@ -54,9 +54,11 @@ def get(data, entry):
               help='Beginning of date range for logbook output')
 @click.option('-e', '--end', 'a_end', default=dt.datetime.max, required=False,
               help='End of date range for logbook output')
-@click.option('-c', '--commute', 'a_commute', is_flag=True,
+@click.option('-c', '--commute', 'a_commute', is_flag=True, default=False, show_default=True,
               help='Include commutes in logbook')
-def main(a_begin, a_end, a_commute):
+@click.option('--pandoc/--no-pandoc', 'a_pandoc', is_flag=True, default=True, show_default=True,
+              help='Run LaTeX to create PDF; if not activated, only create markdown')
+def main(a_begin, a_end, a_commute, a_pandoc):
     # create markdown text from info in the current athletes files
     mdf = MdUtils(file_name=f'{logbook_basename}.md',
                   title=f'Activity journal of athlete {athlete["name"]} (id: {athlete_id})',
@@ -114,11 +116,13 @@ def main(a_begin, a_end, a_commute):
     # save markdown file
     mdf.create_md_file()
 
-    print('activity journal updated, creating PDF')
-
     # create updated PDF
-    import subprocess
-    subprocess.call(['pandoc', '-d', 'pandoc.yaml', '-o', f'{logbook_basename}.pdf', f'{logbook_basename}.md'])
+    if a_pandoc:
+        print('activity journal updated, creating PDF')
+        import subprocess
+        subprocess.call(['pandoc', '-d', 'pandoc.yaml', '-o', f'{logbook_basename}.pdf', f'{logbook_basename}.md'])
+    else:
+        print('activity journal updated, but not creating PDF')
 
 
 
