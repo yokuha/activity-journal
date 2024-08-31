@@ -90,6 +90,10 @@ for id in sorted(activities, reverse=True):
         mdf.new_header(level=3, title='Description')
         mdf.new_paragraph(f'{private_note}\n{public_note}\n')
 
+    # print comments – not yet implemented in i.icu API
+
+    # print references to attachments – always empty through API
+
 
 # save markdown file
 mdf.create_md_file()
