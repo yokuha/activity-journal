@@ -2,7 +2,7 @@ archive/
 settings.py
 *.html
 *.json
-7*.md
+*.md
 *.pdf
 
 

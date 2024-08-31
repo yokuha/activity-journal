@@ -42,7 +42,7 @@ def main(a_begin, a_end):
 
 
     # Get the list of activities in date range
-    response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}',
+    response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}T23:59:59',
                             headers = {'Authorization': auth_key})
     data = json.loads(response.text)
 
@@ -58,7 +58,6 @@ def main(a_begin, a_end):
     # extract logbook data and store in db
     items = item_names.values()
     for a in data:
-        print(a['id'], a['name'])
         if a['id'] not in activities:
             activities[a['id']] = {}
         for i in item_names.keys():

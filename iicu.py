@@ -26,12 +26,17 @@ activities_file = logbook_basename + '-activity-data.json'
 athlete_file = logbook_basename + '-athlete-info.json'
 
 # activity items to store locally and their logbook output names
-item_names = {'name': 'name',
-              'date': 'start_date',
+item_names = {'type': 'type',
+              'name': 'name',
+              'date': 'start_date_local',
               'note': 'description',
               'AP': 'icu_average_watts',
+              'FTP': 'icu_ftp',
+              'IF': 'icu_intensity',
+              'L/R': 'avg_lr_balance',
+              'load': 'icu_training_load_data',
+              'RPE': 'icu_rpe',
               'calories': 'calories',
-              'L/R': 'avg_lr_balance'
               }
 
 
