@@ -14,17 +14,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-import base64
 import click
 import json
 import numpy as np
 from pathlib import Path
 import requests
 from scipy.ndimage import gaussian_filter
-from settings import *
 
 from matplotlib.image import NonUniformImage
 import matplotlib.pyplot as plt
+
+from iicu import *
 
 
 @click.command()
@@ -33,9 +33,8 @@ import matplotlib.pyplot as plt
               help='i.icu activity ID')
 def main(a_activity_id):
     # Get the activity's L-R-balance data
-    api_key = b'Basic ' + base64.b64encode(f'API_KEY:{intervals_api_key}'.encode('ascii'))
     response = requests.get(url = f'https://intervals.icu/api/v1/activity/{a_activity_id}/streams?types=watts,left_right_balance',
-                            headers = {'Authorization': api_key})
+                            headers = {'Authorization': auth_key})
     # extract data
     data = json.loads(response.text)
     power = np.array(data[0]['data'], dtype=int)
@@ -62,7 +61,7 @@ def main(a_activity_id):
     # proxy = [plt.Rectangle((0, 0), 1, 1, fc=fc) for fc in cs.get_facecolors()]
     # plt.legend(proxy, [f'{lower:2.0f}--{upper:2.0f} \\%' for lower, upper in zip(levels[:-1]*100, levels[1:]*100)])
     plt.xlabel('power (W)')
-    plt.ylabel('L fraction of L-R balance (\\%)')
+    plt.ylabel('R fraction of L-R balance (\\%)')
     plt.colorbar(label='rel. contribution (\\% of peak)')
     plt.savefig(Path.home() / 'Downloads' / f'{a_activity_id}.png')
     plt.show()
