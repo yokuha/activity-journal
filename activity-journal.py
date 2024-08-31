@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
+import click
+import datetime as dt
 import json
 import mdutils
 from mdutils.mdutils import MdUtils
@@ -46,63 +48,82 @@ def get(data, entry):
         return ''
 
 
-# create markdown text from info in the current athletes files
-mdf = MdUtils(file_name=f'{logbook_basename}.md',
-              title=f'Activity journal of athlete {athlete["name"]} (id: {athlete_id})',
-              author = 'activity-journal package by yokuha')
-# mdf.new_header(level=1, title=f'Athlete info: {athlete["firstname"]} {athlete["lastname"]}')
-mdf.new_paragraph(f'``https://intervals.icu/athlete/{athlete_id}/fitness``\n')
-if athlete["email"]: mdf.new_paragraph(athlete["email"])
-mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
+@click.command()
+@click.help_option('--help', '-h')
+@click.option('-b', '--begin', 'a_begin', default=dt.datetime.min, required=False,
+              help='Beginning of date range for logbook output')
+@click.option('-e', '--end', 'a_end', default=dt.datetime.max, required=False,
+              help='End of date range for logbook output')
+@click.option('-c', '--commute', 'a_commute', is_flag=True,
+              help='Include commutes in logbook')
+def main(a_begin, a_end, a_commute):
+    # create markdown text from info in the current athletes files
+    mdf = MdUtils(file_name=f'{logbook_basename}.md',
+                  title=f'Activity journal of athlete {athlete["name"]} (id: {athlete_id})',
+                  author = 'activity-journal package by yokuha')
+    # mdf.new_header(level=1, title=f'Athlete info: {athlete["firstname"]} {athlete["lastname"]}')
+    mdf.new_paragraph(f'``https://intervals.icu/athlete/{athlete_id}/fitness``\n')
+    if athlete["email"]: mdf.new_paragraph(athlete["email"])
+    mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
+    mdf.new_paragraph('---')
 
-mdf.new_paragraph('---')
+    # and print info on the athletes activities
+    mdf.new_header(level=1, title='Activities')
+    for id in sorted(activities, reverse=True):
+        data = activities[id]
+        if 'commute' in data and not data['commute'] or a_commute \
+           and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
+           and dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) < dt.datetime.fromisoformat(a_end):
+            # print activity title (date)
+            if 'date' in data and None != data['date'] and len(data['date']) > 0:
+                mdf.new_header(level=2, title=f'{data["name"]} ({dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")})')
+            else:
+                mdf.new_header(level=2, title=data['name'])
+            # print URL on Strava
+            mdf.new_paragraph(f'``https://intervals.icu/activities/{id}``\n')
+            # print some basic data of activity
+            if 'Ride' in get(data, 'type'):
+                mdf.new_paragraph(f'AP = {get(data, "AP")} W, '
+                                  f'NP = {get(data, "NP")} W, '
+                                  f'IF = 0.{get(data, "IF")} (FTP = {get(data, "FTP")}), '
+                                  f'L/R = {get(data, "L/R")}, '
+                                  f'calories = {get(data, "calories")} kcal\n')
+            else:
+                mdf.new_paragraph(f'IF = 0.{get(data, "IF")}, '
+                                  f'calories = {get(data, "calories")} kcal\n')
 
-# and print info on the athletes activities
-mdf.new_header(level=1, title='Activities')
-for id in sorted(activities, reverse=True):
-    data = activities[id]
-    # print activity title (date)
-    if 'date' in data and None != data['date'] and len(data['date']) > 0:
-        mdf.new_header(level=2, title=f'{data["name"]} ({data["date"].replace("T", " ").replace("Z", " h")})')
-    else:
-        mdf.new_header(level=2, title=data['name'])
-    # print URL on Strava
-    mdf.new_paragraph(f'``https://intervals.icu/activities/{id}``\n')
-    # print some basic data of activity
-    if 'Ride' in get(data, 'type'):
-        mdf.new_paragraph(f'AP = {get(data, "AP")} W, '
-                          f'NP = {get(data, "NP")} W, '
-                          f'IF = 0.{get(data, "IF")} (FTP = {get(data, "FTP")}), '
-                          f'L/R = {get(data, "L/R")}, '
-                          f'calories = {get(data, "calories")} kcal\n')
-    else:
-        mdf.new_paragraph(f'IF = 0.{get(data, "IF")}, '
-                          f'calories = {get(data, "calories")} kcal\n')
+            # print public and private notes
+            public_note = ''
+            if 'note' in data and None != data['note'] and len(data['note']) > 0:
+                public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
+                public_note = re.sub(r'👏.*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
+            private_note = ''
+            if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
+                private_note = data['private_note'].replace('\r', '   ')
+            if len(public_note) + len(private_note) > 0:
+                mdf.new_header(level=3, title='Description')
+                mdf.new_paragraph(f'{private_note}\n{public_note}\n')
 
-    # print public and private notes
-    public_note = ''
-    if 'note' in data and None != data['note'] and len(data['note']) > 0:
-        public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL).replace('\r', '   ')
-    private_note = ''
-    if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
-        private_note = data['private_note'].replace('\r', '   ')
-    if len(public_note) + len(private_note) > 0:
-        mdf.new_header(level=3, title='Description')
-        mdf.new_paragraph(f'{private_note}\n{public_note}\n')
+            # print comments – not yet implemented in i.icu API
 
-    # print comments – not yet implemented in i.icu API
+            # print references to attachments – always empty through API
 
-    # print references to attachments – always empty through API
+            mdf.new_paragraph('---')
 
 
-# save markdown file
-mdf.create_md_file()
+    # save markdown file
+    mdf.create_md_file()
 
-print('activity journal updated, creating PDF')
+    print('activity journal updated, creating PDF')
 
-# create updated PDF
-import subprocess
-subprocess.call(['pandoc', '-d', 'pandoc.yaml', '-o', f'{logbook_basename}.pdf', f'{logbook_basename}.md'])
+    # create updated PDF
+    import subprocess
+    subprocess.call(['pandoc', '-d', 'pandoc.yaml', '-o', f'{logbook_basename}.pdf', f'{logbook_basename}.md'])
+
+
+
+if __name__ == "__main__":
+    main()
 
 
 
