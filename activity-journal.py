@@ -85,13 +85,15 @@ def main(a_begin, a_end, a_commute, a_pandoc):
             mdf.new_paragraph(f'``https://intervals.icu/activities/{id}``\n')
             # print some basic data of activity
             if 'Ride' in get(data, 'type'):
-                mdf.new_paragraph(f'AP = {get(data, "AP")} W, '
+                mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
+                                  f'AP = {get(data, "AP")} W, '
                                   f'NP = {get(data, "NP")} W, '
                                   f'IF = 0.{get(data, "IF")} (FTP = {get(data, "FTP")}), '
                                   f'L/R = {get(data, "L/R")}, '
                                   f'calories = {get(data, "calories")} kcal\n')
             else:
-                mdf.new_paragraph(f'IF = 0.{get(data, "IF")}, '
+                mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
+                                  f'IF = 0.{get(data, "IF")}, '
                                   f'calories = {get(data, "calories")} kcal\n')
 
             # print public and private notes
