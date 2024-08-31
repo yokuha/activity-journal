@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # activity-journal -- create a journal of the notes of your own Strava activities.
-# Copyright (C) 2023 yokuha
+# Copyright (C) 2023,2024 yokuha <jokuha@icloud.com>
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -15,12 +15,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-#import os
 import click
 import json
 import requests
-#import time
-#import webbrowser
 
 from iicu import *
 
@@ -47,7 +44,6 @@ def main(a_begin, a_end):
     data = json.loads(response.text)
 
     activities = {}
-
     # load already saved info
     try:
         with open(activities_file, 'r', encoding='utf-8') as db:
