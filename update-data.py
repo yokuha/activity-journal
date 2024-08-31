@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# activity-journal -- create a journal of the notes of your own Strava activities.
+# activity-journal -- create a journal of the notes of your own intervals.icu activities.
 # Copyright (C) 2023,2024 yokuha <jokuha@icloud.com>
 #
 # This program is free software: you can redistribute it and/or modify it under

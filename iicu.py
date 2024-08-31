@@ -1,5 +1,9 @@
-# intervals.icu authorization and functionality functions
+#!/usr/bin/env python
+#
+# activity-journal -- create a journal of the notes of your own intervals.icu activities.
 # Copyright (C) 2023,2024 yokuha <jokuha@icloud.com>
+#
+# intervals.icu authorization and functionality
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
