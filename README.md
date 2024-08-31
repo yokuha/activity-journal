@@ -31,8 +31,12 @@ noteworthy are probably
 2. Get your activities from i.icu and add them to your local database running
    `update-data.py`.
 3. Create a PDF file of the data using `activity-journal.py`; this script
-   creates a markdown file of the data and passes this through `pandoc`, which
-   is thus necessary.
+   creates a markdown file of the data. It can also pass this through `pandoc`,
+   using `LaTeX` to produce a PDF, which are thus necessary to obtain a PDF. The
+   markdown file is always generated.
+
+Run the scripts with `-h` options to obtain some basic help and a list of
+options.
 
 
 # Further comments
