@@ -69,7 +69,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
     mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
     mdf.new_paragraph('---')
 
-    # and print info on the athletes activities
+    # print info on the athletes activities
     mdf.new_header(level=1, title='Activities')
     for id in sorted(activities, reverse=True):
         data = activities[id]
@@ -81,7 +81,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
                 mdf.new_header(level=2, title=f'{data["name"]} ({dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")})')
             else:
                 mdf.new_header(level=2, title=data['name'])
-            # print URL on Strava
+            # print i.icu URL
             mdf.new_paragraph(f'``https://intervals.icu/activities/{id}``\n')
             # print some basic data of activity
             if 'Ride' in get(data, 'type'):
@@ -91,14 +91,14 @@ def main(a_begin, a_end, a_commute, a_pandoc):
                                   f'IF = 0.{get(data, "IF")} (FTP = {get(data, "FTP")}), '
                                   f'L/R = {get(data, "L/R")}, '
                                   f'calories = {get(data, "calories")} kcal\n')
-            else:
+            elif len(get(data, 'type')) > 0:
                 mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
                                   f'IF = 0.{get(data, "IF")}, '
                                   f'calories = {get(data, "calories")} kcal\n')
 
             # print public and private notes
             public_note = ''
-            if 'note' in data and None != data['note'] and len(data['note']) > 0:
+            if 'note' in data and data['note'] and len(data['note']) > 0:
                 public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
                 public_note = re.sub(r'👏.*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
             private_note = ''

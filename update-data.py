@@ -27,7 +27,7 @@ from iicu import *
 @click.help_option('--help', '-h')
 @click.option('-b', '--begin', 'a_begin', default=None, required=True,
               help='Beginning of date range for data download')
-@click.option('-e', '--end', 'a_end', default=None, required=True,
+@click.option('-e', '--end', 'a_end', default='3333-12-31', required=False,
               help='End of date range for data download')
 def main(a_begin, a_end):
     # Get current athlete info and store locally
@@ -63,7 +63,7 @@ def main(a_begin, a_end):
     # extract logbook data and store in db
     # items = item_names.values()
     for a in data:
-        if a['category'] in ['NOTE']:
+        if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE']:
             if a['id'] not in activities:
                 activities[a['id']] = {}
             for i in item_names.keys():
