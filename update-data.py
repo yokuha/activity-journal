@@ -36,13 +36,6 @@ def main(a_begin, a_end):
     with open(athlete_file, 'w', encoding='utf-8') as db:
         json.dump(json.loads(response.text), db, indent=4)
 
-
-
-    # Get the list of activities in date range
-    response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}T23:59:59',
-                            headers = {'Authorization': auth_key})
-    data = json.loads(response.text)
-
     activities = {}
     # load already saved info
     try:
@@ -51,6 +44,10 @@ def main(a_begin, a_end):
     except FileNotFoundError:
         pass
 
+    # Get the list of activities in date range
+    response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}T23:59:59',
+                            headers = {'Authorization': auth_key})
+    data = json.loads(response.text)
     # extract logbook data and store in db
     items = item_names.values()
     for a in data:
@@ -58,6 +55,22 @@ def main(a_begin, a_end):
             activities[a['id']] = {}
         for i in item_names.keys():
             activities[a['id']].update({i:a[item_names[i]]})
+
+    # Get the list of notes in date range
+    response = requests.get(url = f'https://intervals.icu//api/v1/athlete/{athlete_id}/events?oldest={a_begin}&newest={a_end}T23:59:59',
+                            headers = {'Authorization': auth_key})
+    data = json.loads(response.text)
+    # extract logbook data and store in db
+    # items = item_names.values()
+    for a in data:
+        if a['category'] in ['NOTE']:
+            if a['id'] not in activities:
+                activities[a['id']] = {}
+            for i in item_names.keys():
+                try:
+                    activities[a['id']].update({i:a[item_names[i]]})
+                except:
+                    pass
 
     # save updated/current data
     with open(activities_file, 'w', encoding='utf-8') as db:
