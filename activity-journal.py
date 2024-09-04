@@ -73,7 +73,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
     mdf.new_header(level=1, title='Activities')
     for id in sorted(activities, reverse=True):
         data = activities[id]
-        if 'commute' in data and not data['commute'] or a_commute \
+        if a_commute or ('commute' in data and not data['commute']) or ('commute') not in data \
            and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
            and dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) < dt.datetime.fromisoformat(a_end):
             # print activity title (date)
