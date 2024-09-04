@@ -45,25 +45,26 @@ def main(a_begin, a_end):
         pass
 
     # Get the list of activities in date range
-    response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}T23:59:59',
-                            headers = {'Authorization': auth_key})
-    data = json.loads(response.text)
+    data = json.loads(requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}',
+                                   headers = {'Authorization': auth_key}).text)
     # extract logbook data and store in db
-    items = item_names.values()
     for a in data:
+        # Get notes of activity
+        a['messages'] = json.loads(requests.get(url = f'https://intervals.icu//api/v1/activity/{a['id']}/messages',
+                                                headers = {'Authorization': auth_key}).text)
         if a['id'] not in activities:
             activities[a['id']] = {}
         for i in item_names.keys():
-            activities[a['id']].update({i:a[item_names[i]]})
+                try:
+                    activities[a['id']].update({i:a[item_names[i]]})
+                except:
+                    pass
 
     # Get the list of notes in date range
-    response = requests.get(url = f'https://intervals.icu//api/v1/athlete/{athlete_id}/events?oldest={a_begin}&newest={a_end}T23:59:59',
-                            headers = {'Authorization': auth_key})
-    data = json.loads(response.text)
-    # extract logbook data and store in db
-    # items = item_names.values()
+    data = json.loads(requests.get(url = f'https://intervals.icu//api/v1/athlete/{athlete_id}/events?oldest={a_begin}&newest={a_end}T23:59:59',
+                                   headers = {'Authorization': auth_key}).text)
     for a in data:
-        if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE']:
+        if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE', 'RACE_A', 'RACE_B', 'RACE_C']:
             if a['id'] not in activities:
                 activities[a['id']] = {}
             for i in item_names.keys():

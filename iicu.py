@@ -42,6 +42,8 @@ item_names = {'type': 'type',
               'load': 'icu_training_load_data',
               'RPE': 'icu_rpe',
               'calories': 'calories',
+              'category': 'category',
+              'notes': 'messages',
               'attachments': 'attachments',
               }
 
