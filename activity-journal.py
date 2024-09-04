@@ -82,7 +82,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
             else:
                 mdf.new_header(level=2, title=data['name'])
             # print i.icu URL
-            mdf.new_paragraph(f'``https://intervals.icu/activities/{id}``\n')
+            mdf.new_paragraph(f'https://intervals.icu/activities/{id}\n')
             # print some basic data of activity
             if 'Ride' in get(data, 'type'):
                 mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
@@ -108,9 +108,16 @@ def main(a_begin, a_end, a_commute, a_pandoc):
                 mdf.new_header(level=3, title='Description')
                 mdf.new_paragraph(f'{private_note}\n{public_note}\n')
 
-            # print comments – not yet implemented in i.icu API
+            # print comments (messages), including these files
+            if 'notes' in data and data['notes'] != []:
+                mdf.new_header(level=3, title='Notes/messages and links to files')
+                for m in data['notes']:
+                    if m['attachment_url']:
+                        mdf.new_paragraph(f"{m['name'].replace('yokuha', 'JK')} attached [{m['content']}]({m['attachment_url']})")
+                    else:
+                        mdf.new_paragraph(f'{m["name"].replace("yokuha", "JK")}: {m["content"]}')
 
-            # print references to attachments – always empty through API
+            # print references to attachments
 
             mdf.new_paragraph('---')
 
