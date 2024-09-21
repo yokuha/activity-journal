@@ -37,7 +37,7 @@ def get(data, entry):
             return str(int(int(data['FTP'])*float(data['IF']/100)))
         if 'L/R' == entry:
             r = data[entry]
-            return(f'{int(100-r)}/{int(r)}')
+            return(f'{int(round(100-r))}/{int(round(r))}')
         else:
             if str != type(data[entry]):
                 return str(int(data[entry]))
