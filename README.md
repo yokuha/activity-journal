@@ -11,7 +11,7 @@ intervals.icu activities.
    https://intervals.icu/settings and create/update
    `src/iicu_activity_journal/settings.py` with that info using the format from
    `settings-template.py`.
-3. Run `pip install .`, and you are set.
+3. Run `pip install .` and you are set.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ In addition, you need a current Python installation with common packages, see
 # Usage
 
 Get your activities from i.icu and add them to your local database running
-`iicu-activity-journal-update-data -h`.
+`iicu-activity-journal-update-data`.
 
 Create a PDF file of the data using `iicu-activity-journal-create`; this script
 creates a markdown file of the data. It can also pass this through `pandoc`,
