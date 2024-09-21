@@ -71,7 +71,9 @@ def main(a_begin, a_end, a_commute, a_pandoc):
 
     # print info on the athletes activities
     mdf.new_header(level=1, title='Activities')
-    for id in sorted(activities, reverse=True):
+    for id in dict(sorted(activities.items(),
+                          key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
+                          reverse=True)):
         data = activities[id]
         if a_commute or ('commute' in data and not data['commute']) or ('commute') not in data \
            and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
