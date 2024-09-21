@@ -50,9 +50,9 @@ def get(data, entry):
 
 @click.command()
 @click.help_option('--help', '-h')
-@click.option('-b', '--begin', 'a_begin', default=dt.datetime.min, required=False,
+@click.option('-b', '--begin', 'a_begin', default=dt.datetime.min, required=False, show_default=True,
               help='Beginning of date range for logbook output')
-@click.option('-e', '--end', 'a_end', default=dt.datetime.max, required=False,
+@click.option('-e', '--end', 'a_end', default=dt.datetime.max, required=False, show_default=True,
               help='End of date range for logbook output')
 @click.option('-c', '--commute', 'a_commute', is_flag=True, default=False, show_default=True,
               help='Include commutes in logbook')
