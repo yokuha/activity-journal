@@ -19,8 +19,7 @@ import click
 import json
 import requests
 
-from iicu import *
-
+from iicu_activity_journal.iicu import *
 
 
 @click.command()

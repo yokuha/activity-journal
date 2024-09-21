@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # activity-journal -- create a journal of the notes of your own intervals.icu activities.
 # Copyright (C) 2023,2024 yokuha <jokuha@icloud.com>
 #
@@ -19,7 +17,7 @@
 
 
 import base64
-from settings import *
+from iicu_activity_journal.settings import *
 
 # API_KEY for basic authentication
 auth_key = b'Basic ' + base64.b64encode(f'API_KEY:{api_key}'.encode('ascii'))

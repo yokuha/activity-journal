@@ -1,0 +1,30 @@
+[project]
+name = "iicu_activity_journal"
+version = "0.5.0"
+authors = [
+  { name="yokuha", email="jokuha@icloud.com" },
+]
+description = "Creating logbooks from intervals.icu data"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GPLv3 License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/yokuha/activity-journal"
+Issues = "https://github.com/yokuha/activity-journal/issues"
+
+
+[project.scripts]
+iicu-activity-journal-create = "iicu_activity_journal.print_journal:main"
+iicu-activity-journal-update-data = "iicu_activity_journal.get_data:main"
+# iicu-activity-balance-plot = "L-R-balance:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+iicu_activity_journal = ["pandoc.yaml"]
