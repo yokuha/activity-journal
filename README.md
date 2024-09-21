@@ -20,7 +20,6 @@ noteworthy are probably
 * matplotlib
 * mdUtils
 * requests
-* scipy
 
 
 # Usage
