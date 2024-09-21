@@ -25,7 +25,7 @@ from scipy.ndimage import gaussian_filter
 from matplotlib.image import NonUniformImage
 import matplotlib.pyplot as plt
 
-from iicu import *
+from iicu_activity_journal.iicu import *
 
 
 @click.command()

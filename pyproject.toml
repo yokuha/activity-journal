@@ -21,7 +21,7 @@ Issues = "https://github.com/yokuha/activity-journal/issues"
 [project.scripts]
 iicu-activity-journal-create = "iicu_activity_journal.print_journal:main"
 iicu-activity-journal-update-data = "iicu_activity_journal.get_data:main"
-# iicu-activity-balance-plot = "L-R-balance:main"
+iicu-balance = "iicu_activity_journal.plot_balance:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
