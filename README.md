@@ -4,20 +4,6 @@ This is a simple no-guarantee tool to create a journal of the notes of your own
 intervals.icu activities.
 
 
-# Usage
-
-Get your activities from i.icu and add them to your local database running
-`iicu-activity-journal-update-data -h`.
-
-Create a PDF file of the data using `iicu-activity-journal-create`; this script
-creates a markdown file of the data. It can also pass this through `pandoc`,
-using `LaTeX` to produce a PDF, which are thus necessary to obtain a PDF. The
-markdown file is always generated.
-
-Run these scripts with `-h` options to obtain some basic help and a list of
-options.
-
-
 # Installation
 
 1. Download or clone this package from github.
@@ -32,13 +18,22 @@ options.
 You'll obviously need access to an account at https://intervals.icu – preferably
 your own or one of your client.
 
-In addition, you need a current Python installation with common packages, most
-noteworthy are probably
+In addition, you need a current Python installation with common packages, see
+`pyproject.toml` for details.
 
-* json
-* matplotlib
-* mdUtils
-* requests
+
+# Usage
+
+Get your activities from i.icu and add them to your local database running
+`iicu-activity-journal-update-data -h`.
+
+Create a PDF file of the data using `iicu-activity-journal-create`; this script
+creates a markdown file of the data. It can also pass this through `pandoc`,
+using `LaTeX` to produce a PDF, which are thus necessary to obtain a PDF. The
+markdown file is always generated.
+
+Run these scripts with `-h` options to obtain some basic help and a list of
+options.
 
 
 # Further comments
