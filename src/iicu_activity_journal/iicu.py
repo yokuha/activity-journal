@@ -17,7 +17,7 @@
 
 
 import base64
-from iicu_activity_journal.settings import *
+from iicu_activity_journal.settings import athlete_id, api_key
 
 # API_KEY for basic authentication
 auth_key = b'Basic ' + base64.b64encode(f'API_KEY:{api_key}'.encode('ascii'))

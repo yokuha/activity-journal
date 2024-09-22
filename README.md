@@ -40,3 +40,12 @@ options.
 
 If you have any ideas on how to improve `activity journal` please let me know
 or, preferably, create a pull request for improvements.
+
+
+## Requirements
+
+Plotting L/R balance has further requirements, e.g., `matplotlib` and `scipy`.
+However, as this functionality is now routinely available in intervals.icu I do
+not want to impose these requirements on the general use of the activity
+journal. If you want to use the `...-balance` script, make sure to install these
+requirements manually. For standard use, they are not needed.

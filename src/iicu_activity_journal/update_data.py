@@ -15,12 +15,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-import click
+
+"""Collect data from intervals.icu API for the activity journal"""
+
+
 import json
+
+import click
 import requests
 
-from iicu_activity_journal.iicu import *
-
+from iicu_activity_journal import iicu
+from iicu_activity_journal.iicu import activities_file, athlete_id, athlete_file, auth_key, item_names
 
 @click.command()
 @click.help_option('--help', '-h')
@@ -29,9 +34,11 @@ from iicu_activity_journal.iicu import *
 @click.option('-e', '--end', 'a_end', default='3333-12-31', required=False,
               help='End of date range for data download')
 def main(a_begin, a_end):
+    """Collect data from intervals.icu API for the activity journal"""
+
     # Get current athlete info and store locally
     response = requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/profile',
-                            headers = {'Authorization': auth_key})
+                            headers = {'Authorization': auth_key}, timeout=30)
     with open(athlete_file, 'w', encoding='utf-8') as db:
         json.dump(json.loads(response.text), db, indent=4)
 
@@ -45,41 +52,37 @@ def main(a_begin, a_end):
 
     # Get the list of activities in date range
     data = json.loads(requests.get(url = f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}',
-                                   headers = {'Authorization': auth_key}).text)
+                                   headers = {'Authorization': auth_key}, timeout=30).text)
     # extract logbook data and store in db
     for a in data:
         # Get notes of activity
-        a['messages'] = json.loads(requests.get(url = f'https://intervals.icu//api/v1/activity/{a['id']}/messages',
-                                                headers = {'Authorization': auth_key}).text)
+        a['messages'] = json.loads(requests.get(url = f'https://intervals.icu//api/v1/activity/{a["id"]}/messages',
+                                                headers = {'Authorization': auth_key}, timeout=30).text)
         if a['id'] not in activities:
             activities[a['id']] = {}
-        for i in item_names.keys():
-                try:
-                    activities[a['id']].update({i:a[item_names[i]]})
-                except:
-                    pass
+        for i in item_names.items():
+            if i[1] in a:
+                activities[a['id']].update({i[0]:a[i[1]]})
 
     # Get the list of notes in date range
     data = json.loads(requests.get(url = f'https://intervals.icu//api/v1/athlete/{athlete_id}/events?oldest={a_begin}&newest={a_end}T23:59:59',
-                                   headers = {'Authorization': auth_key}).text)
+                                   headers = {'Authorization': auth_key}, timeout=30).text)
     for a in data:
         if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE', 'RACE_A', 'RACE_B', 'RACE_C']:
             if a['id'] not in activities:
                 activities[a['id']] = {}
-            for i in item_names.keys():
-                try:
-                    activities[a['id']].update({i:a[item_names[i]]})
-                except:
-                    pass
+            for i in item_names.items():
+                if i[1] in a:
+                    activities[a['id']].update({i[0]:a[i[1]]})
 
     # save updated/current data
-    with open(activities_file, 'w', encoding='utf-8') as db:
+    with open(iicu.activities_file, 'w', encoding='utf-8') as db:
         json.dump(activities, db, indent=4)
 
 
 
 if __name__ == "__main__":
-    main()
+    main(0,0)
 
 
 

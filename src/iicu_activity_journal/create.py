@@ -15,24 +15,31 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-import click
-import datetime as dt
+
+"""Create activity journal
+
+Creates a mardown file from the stored data and passes this through pandoc/LateX
+to create a PDF, unless pnadoc is disabled.
+"""
+
+
 import json
-import mdutils
-from mdutils.mdutils import MdUtils
 import re
 
+import click
+import datetime as dt
+import mdutils
+from mdutils.mdutils import MdUtils
+
 from iicu_activity_journal import pandoc_config_file
-from iicu_activity_journal.iicu import *
-
-# load athlete and activities info
-with open(athlete_file, 'r', encoding='utf-8') as db:
-    athlete = json.load(db)["athlete"]
-with open(activities_file, 'r', encoding='utf-8') as db:
-    activities = json.load(db)
-
+from iicu_activity_journal.iicu import activities_file, athlete_file, athlete_id, logbook_basename
 
 def get(data, entry):
+    """Get specific data entry
+
+    Handles some specific conversion for selected entries, otherwise/generally
+    provides the data itself.
+    """
     try:
         if 'NP' == entry:
             return str(int(int(data['FTP'])*float(data['IF']/100)))
@@ -60,15 +67,27 @@ def get(data, entry):
 @click.option('--pandoc/--no-pandoc', 'a_pandoc', is_flag=True, default=True, show_default=True,
               help='Run LaTeX to create PDF; if not activated, only create markdown')
 def main(a_begin, a_end, a_commute, a_pandoc):
+    """Create activity journal"""
+
+    # load athlete and activities info
+    with open(athlete_file, 'r', encoding='utf-8') as db:
+        athlete = json.load(db)["athlete"]
+    with open(activities_file, 'r', encoding='utf-8') as db:
+        activities = json.load(db)
+
     # create markdown text from info in the current athletes files
     mdf = MdUtils(file_name=f'{logbook_basename}.md',
                   title=f'Activity journal of athlete {athlete["name"]} (id: {athlete_id})',
                   author = 'activity-journal package by yokuha')
     # mdf.new_header(level=1, title=f'Athlete info: {athlete["firstname"]} {athlete["lastname"]}')
-    mdf.new_paragraph(f'``https://intervals.icu/athlete/{athlete_id}/fitness``\n')
+    mdf.new_paragraph(f'https://intervals.icu/athlete/{athlete_id}/fitness\n')
+    if not a_commute:
+        mdf.new_paragraph('Without commutes; specify `-c` if you want commutes to be included.')
     if athlete["email"]: mdf.new_paragraph(athlete["email"])
+    mdf.new_header(level=1, title='Story')
     mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
     mdf.new_paragraph('---')
+
 
     # print info on the athletes activities
     mdf.new_header(level=1, title='Activities')
@@ -85,7 +104,10 @@ def main(a_begin, a_end, a_commute, a_pandoc):
             else:
                 mdf.new_header(level=2, title=data['name'])
             # print i.icu URL
-            mdf.new_paragraph(f'https://intervals.icu/activities/{id}\n')
+            if 'i' == id[0]:
+                mdf.new_paragraph(f'https://intervals.icu/activities/{id}\n')
+            else:
+                mdf.new_paragraph(f'No i.icu link available for {id}; feature is requested upstream.\n')
             # print some basic data of activity
             if 'Ride' in get(data, 'type'):
                 mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
@@ -124,7 +146,6 @@ def main(a_begin, a_end, a_commute, a_pandoc):
             # print references to attachments
 
             mdf.new_paragraph('---')
-
 
     # save markdown file
     mdf.create_md_file()

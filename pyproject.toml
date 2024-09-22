@@ -9,8 +9,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "click",
-  "matplotlib",
-  "mdUtils",
+  "datetime",
+  "mdutils",
   "requests",
 ]
 classifiers = [
@@ -24,9 +24,9 @@ homepage = "https://github.com/yokuha/activity-journal"
 issues = "https://github.com/yokuha/activity-journal/issues"
 
 [project.scripts]
-iicu-activity-journal-create = "iicu_activity_journal.print_journal:main"
-iicu-activity-journal-update-data = "iicu_activity_journal.get_data:main"
-iicu-balance = "iicu_activity_journal.plot_balance:main"
+iicu-activity-journal-create = "iicu_activity_journal.create:main"
+iicu-activity-journal-update-data = "iicu_activity_journal.update_data:main"
+iicu-activity-journal-balance = "iicu_activity_journal.balance:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
