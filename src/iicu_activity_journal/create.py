@@ -102,17 +102,16 @@ def main(a_begin, a_end, a_commute, a_pandoc):
             if 'date' in data and None != data['date'] and len(data['date']) > 0:
                 if 'end_date' in data and None != data['end_date'] and len(data['end_date']) > 0:
                     if dt.datetime.fromisoformat(data['date']).date() != dt.datetime.fromisoformat(data['end_date']).date():
-                        mdf.new_header(level=2, title=f'{data["name"]} ('
-                                       f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d")}...'
-                                       f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%a %Y-%m-%d")}'
-                                       ')')
+                        mdf.new_header(level=2, title=f'{data["name"]}')
+                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d")}...'
+                                       f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%a %Y-%m-%d")}')
                     else:
-                        mdf.new_header(level=2, title=f'{data["name"]} ('
-                                       f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")}–'
-                                       f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%H:%M")} h'
-                                       ')')
+                        mdf.new_header(level=2, title=f'{data["name"]}')
+                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")}–'
+                                       f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%H:%M")} h')
                 else:
-                    mdf.new_header(level=2, title=f'{data["name"]} ({dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")})')
+                    mdf.new_header(level=2, title=f'{data["name"]}')
+                    mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")}')
             else:
                 mdf.new_header(level=2, title=data['name'])
             # print i.icu URL
