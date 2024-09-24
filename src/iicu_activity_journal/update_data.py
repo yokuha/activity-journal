@@ -68,8 +68,7 @@ def main(a_begin, a_end):
     data = json.loads(requests.get(url = f'https://intervals.icu//api/v1/athlete/{athlete_id}/events?oldest={a_begin}&newest={a_end}T23:59:59',
                                    headers = {'Authorization': auth_key}, timeout=30).text)
     for a in data:
-        if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE', 'RACE_A', 'RACE_B', 'RACE_C'] \
-           or a['category'] in ['WORKOUT'] and a['type'] == 'Other':
+        if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE', 'RACE_A', 'RACE_B', 'RACE_C']:
             if a['id'] not in activities:
                 activities[a['id']] = {}
             for i in item_names.items():
