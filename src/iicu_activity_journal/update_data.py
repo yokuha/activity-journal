@@ -26,6 +26,7 @@ import requests
 
 from iicu_activity_journal import iicu
 from iicu_activity_journal.iicu import activities_file, athlete_id, athlete_file, auth_key, item_names
+from iicu_activity_journal import validate
 
 @click.command()
 @click.help_option('--help', '-h')
@@ -33,7 +34,9 @@ from iicu_activity_journal.iicu import activities_file, athlete_id, athlete_file
               help='Beginning of date range for data download')
 @click.option('-e', '--end', 'a_end', default='3333-12-31', required=False,
               help='End of date range for data download')
-def main(a_begin, a_end):
+@click.option('-s', '--sort', 'a_sort', is_flag=True, default=False, show_default=True,
+              help='Sort logbook entries for saving')
+def main(a_begin, a_end, a_sort):
     """Collect data from intervals.icu API for the activity journal"""
 
     # Get current athlete info and store locally
@@ -46,7 +49,9 @@ def main(a_begin, a_end):
     # load already saved info
     try:
         with open(activities_file, 'r', encoding='utf-8') as db:
-            activities = json.load(db)
+            activities = dict(json.load(db, object_pairs_hook=validate.validate_data))
+    except ValueError as err:
+        print(err)
     except FileNotFoundError:
         pass
 
@@ -55,25 +60,34 @@ def main(a_begin, a_end):
                                    headers = {'Authorization': auth_key}, timeout=30).text)
     # extract logbook data and store in db
     for a in data:
+        a_id = str(a['id'])
         # Get notes of activity
         a['messages'] = json.loads(requests.get(url = f'https://intervals.icu//api/v1/activity/{a["id"]}/messages',
                                                 headers = {'Authorization': auth_key}, timeout=30).text)
-        if a['id'] not in activities:
-            activities[a['id']] = {}
+        if a_id not in activities:
+            activities[a_id] = {}
         for i in item_names.items():
             if i[1] in a:
-                activities[a['id']].update({i[0]:a[i[1]]})
+                activities[a_id].update({i[0]:a[i[1]]})
 
     # Get the list of notes in date range
     data = json.loads(requests.get(url = f'https://intervals.icu//api/v1/athlete/{athlete_id}/events?oldest={a_begin}&newest={a_end}T23:59:59',
                                    headers = {'Authorization': auth_key}, timeout=30).text)
     for a in data:
+        key = str(a['id'])
         if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE', 'RACE_A', 'RACE_B', 'RACE_C']:
-            if a['id'] not in activities:
-                activities[a['id']] = {}
+            if str(a_id) not in activities:
+                activities[a_id] = {}
             for i in item_names.items():
                 if i[1] in a:
-                    activities[a['id']].update({i[0]:a[i[1]]})
+                    activities[a_id].update({i[0]:a[i[1]]})
+
+    if a_sort:
+        import datetime as dt
+        activities = dict(sorted(activities.items(),
+                                 key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
+                                 reverse=True))
+
 
     # save updated/current data
     with open(iicu.activities_file, 'w', encoding='utf-8') as db:

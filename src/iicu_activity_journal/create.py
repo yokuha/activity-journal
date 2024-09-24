@@ -33,6 +33,8 @@ from mdutils.mdutils import MdUtils
 
 from iicu_activity_journal import pandoc_config_file
 from iicu_activity_journal.iicu import activities_file, athlete_file, athlete_id, logbook_basename
+from iicu_activity_journal import validate
+
 
 def get(data, entry):
     """Get specific data entry
@@ -73,7 +75,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
     with open(athlete_file, 'r', encoding='utf-8') as db:
         athlete = json.load(db)["athlete"]
     with open(activities_file, 'r', encoding='utf-8') as db:
-        activities = json.load(db)
+        activities = json.load(db, object_pairs_hook=validate.validate_data)
 
     # create markdown text from info in the current athletes files
     mdf = MdUtils(file_name=f'{logbook_basename}.md',
