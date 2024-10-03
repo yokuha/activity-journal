@@ -97,7 +97,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
                           key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
                           reverse=True)):
         data = activities[id]
-        if a_commute or ('commute' in data and not data['commute']) or ('commute') not in data \
+        if (a_commute or ('commute' in data and not data['commute']) or ('commute') not in data) \
            and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
            and dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) < dt.datetime.fromisoformat(a_end):
             # print activity title (date)
