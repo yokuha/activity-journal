@@ -138,8 +138,8 @@ def main(a_begin, a_end, a_commute, a_pandoc):
             public_note = ''
             if 'note' in data and data['note'] and len(data['note']) > 0:
                 public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
-                public_note = re.sub(r'👏.*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
-                public_note = re.sub(r'👍.*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
+                public_note = re.sub(r'-- myWindsock Report.*END --', '', public_note, flags=re.DOTALL)
+                public_note = re.sub(r'[👏👍].*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
             private_note = ''
             if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
                 private_note = data['private_note'].replace('\r', '   ')
