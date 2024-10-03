@@ -84,7 +84,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
     # mdf.new_header(level=1, title=f'Athlete info: {athlete["firstname"]} {athlete["lastname"]}')
     mdf.new_paragraph(f'https://intervals.icu/athlete/{athlete_id}/fitness\n')
     if not a_commute:
-        mdf.new_paragraph('Without commutes; specify `-c` if you want commutes to be included.')
+        mdf.new_paragraph('(Without commutes; specify `-c` if you want commutes to be included.)')
     if athlete["email"]: mdf.new_paragraph(athlete["email"])
     mdf.new_header(level=1, title='Story')
     mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
