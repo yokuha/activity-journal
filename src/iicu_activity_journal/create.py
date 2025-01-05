@@ -97,68 +97,71 @@ def main(a_begin, a_end, a_commute, a_pandoc):
                           key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
                           reverse=True)):
         data = activities[id]
-        if (a_commute or ('commute' in data and not data['commute']) or ('commute') not in data) \
-           and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
-           and dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) < dt.datetime.fromisoformat(a_end):
-            # print activity title (date)
-            if 'date' in data and None != data['date'] and len(data['date']) > 0:
-                if 'end_date' in data and None != data['end_date'] and len(data['end_date']) > 0:
-                    if dt.datetime.fromisoformat(data['date']).date() != dt.datetime.fromisoformat(data['end_date']).date():
-                        mdf.new_header(level=2, title=f'{data["name"]}')
-                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d")}...'
-                                       f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%a %Y-%m-%d")}')
+        try:
+            if (a_commute or ('commute' in data and not data['commute']) or ('commute') not in data) \
+               and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
+               and dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) < dt.datetime.fromisoformat(a_end):
+                # print activity title (date)
+                if 'date' in data and None != data['date'] and len(data['date']) > 0:
+                    if 'end_date' in data and None != data['end_date'] and len(data['end_date']) > 0:
+                        if dt.datetime.fromisoformat(data['date']).date() != dt.datetime.fromisoformat(data['end_date']).date():
+                            mdf.new_header(level=2, title=f'{data["name"]}')
+                            mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d")}...'
+                                           f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%a %Y-%m-%d")}')
+                        else:
+                            mdf.new_header(level=2, title=f'{data["name"]}')
+                            mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")}–'
+                                           f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%H:%M")} h')
                     else:
                         mdf.new_header(level=2, title=f'{data["name"]}')
-                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")}–'
-                                       f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%H:%M")} h')
+                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")}')
                 else:
-                    mdf.new_header(level=2, title=f'{data["name"]}')
-                    mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")}')
-            else:
-                mdf.new_header(level=2, title=data['name'])
-            # print i.icu URL
-            if 'i' == id[0]:
-                mdf.new_paragraph(f'https://intervals.icu/activities/{id}\n')
-            else:
-                mdf.new_paragraph(f'No i.icu link available for {id}; feature is requested upstream.\n')
-            # print some basic data of activity
-            if 'Ride' in get(data, 'type'):
-                mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
-                                  f'AP = {get(data, "AP")} W, '
-                                  f'NP = {get(data, "NP")} W, '
-                                  f'IF = 0.{get(data, "IF")} (FTP = {get(data, "FTP")}), '
-                                  f'L/R = {get(data, "L/R")}, '
-                                  f'calories = {get(data, "calories")} kcal\n')
-            elif len(get(data, 'type')) > 0:
-                mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
-                                  f'IF = 0.{get(data, "IF")}, '
-                                  f'calories = {get(data, "calories")} kcal\n')
+                    mdf.new_header(level=2, title=data['name'])
+                # print i.icu URL
+                if 'i' == id[0]:
+                    mdf.new_paragraph(f'https://intervals.icu/activities/{id}\n')
+                else:
+                    mdf.new_paragraph(f'No i.icu link available for {id}; feature is requested upstream.\n')
+                # print some basic data of activity
+                if 'Ride' in get(data, 'type'):
+                    mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
+                                      f'AP = {get(data, "AP")} W, '
+                                      f'NP = {get(data, "NP")} W, '
+                                      f'IF = 0.{get(data, "IF")} (FTP = {get(data, "FTP")}), '
+                                      f'L/R = {get(data, "L/R")}, '
+                                      f'calories = {get(data, "calories")} kcal\n')
+                elif len(get(data, 'type')) > 0:
+                    mdf.new_paragraph(f'RPE = {get(data, "RPE")}, '
+                                      f'IF = 0.{get(data, "IF")}, '
+                                      f'calories = {get(data, "calories")} kcal\n')
 
-            # print public and private notes
-            public_note = ''
-            if 'note' in data and data['note'] and len(data['note']) > 0:
-                public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
-                public_note = re.sub(r'-- myWindsock Report.*END --', '', public_note, flags=re.DOTALL)
-                public_note = re.sub(r'[👏👍].*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
-            private_note = ''
-            if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
-                private_note = data['private_note'].replace('\r', '   ')
-            if len(public_note) + len(private_note) > 0:
-                mdf.new_header(level=3, title='Description')
-                mdf.new_paragraph(f'{private_note}\n{public_note}\n')
+                # print public and private notes
+                public_note = ''
+                if 'note' in data and data['note'] and len(data['note']) > 0:
+                    public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
+                    public_note = re.sub(r'-- myWindsock Report.*END --', '', public_note, flags=re.DOTALL)
+                    public_note = re.sub(r'[👏👍].*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
+                private_note = ''
+                if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
+                    private_note = data['private_note'].replace('\r', '   ')
+                if len(public_note) + len(private_note) > 0:
+                    mdf.new_header(level=3, title='Description')
+                    mdf.new_paragraph(f'{private_note}\n{public_note}\n')
 
-            # print comments (messages), including these files
-            if 'notes' in data and data['notes'] != []:
-                mdf.new_header(level=3, title='Notes/messages and links to files')
-                for m in data['notes']:
-                    if m['attachment_url']:
-                        mdf.new_paragraph(f"{m['name'].replace('yokuha', 'JK')} attached [{m['content']}]({m['attachment_url']})")
-                    else:
-                        mdf.new_paragraph(f'{m["name"].replace("yokuha", "JK")}: {m["content"]}')
+                # print comments (messages), including these files
+                if 'notes' in data and data['notes'] != []:
+                    mdf.new_header(level=3, title='Notes/messages and links to files')
+                    for m in data['notes']:
+                        if m['attachment_url']:
+                            mdf.new_paragraph(f"{m['name'].replace('yokuha', 'JK')} attached [{m['content']}]({m['attachment_url']})")
+                        else:
+                            mdf.new_paragraph(f'{m["name"].replace("yokuha", "JK")}: {m["content"]}')
 
-            # print references to attachments
+                # print references to attachments
 
-            mdf.new_paragraph('---')
+                mdf.new_paragraph('---')
+        except KeyError as err:
+            print(f'KeyError in entry {id} ({err}) –> https://intervals.icu/activities/{id}')
 
     # save markdown file
     mdf.create_md_file()
