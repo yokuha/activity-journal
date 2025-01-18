@@ -27,6 +27,7 @@ issues = "https://github.com/yokuha/activity-journal/issues"
 iicu-activity-journal-create = "iicu_activity_journal.create:main"
 iicu-activity-journal-update-data = "iicu_activity_journal.update_data:main"
 iicu-activity-journal-balance = "iicu_activity_journal.balance:main"
+iicu-activity-journal-duplicates = "iicu_activity_journal.duplicates:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
