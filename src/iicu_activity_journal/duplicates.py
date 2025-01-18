@@ -59,15 +59,17 @@ def main(a_begin, a_end, a_commute):
         a = activities[a_id]
         b = activities[b_id]
         if ('date' in a and None != a['date'] and len(a['date']) > 0) and ('date' in b and None != b['date'] and len(b['date']) > 0):
-            if dt.datetime.fromisoformat(a['date']).date() - dt.datetime.fromisoformat(b['date']).date() < dt.timedelta(minutes=15):
-                if dt.datetime.fromisoformat(a['date']).date() - dt.datetime.fromisoformat(b['date']).date() < dt.timedelta(minutes=5):
-                    count += 1
-                    print('\n\nPotential duplicates:')
-                    for id in[a_id, b_id]:
-                        if 'i' == id[0]:
-                            print(f'https://intervals.icu/activities/{id}')
-                        else:
-                            print(f'No i.icu link available for {id}; feature is requested upstream.')
+            if dt.datetime.fromisoformat(a['date']) - dt.datetime.fromisoformat(b['date']) < dt.timedelta(minutes=5):
+                print(dt.datetime.fromisoformat(a['date']))
+                print(dt.datetime.fromisoformat(b['date']))
+                print(dt.datetime.fromisoformat(a['date']) - dt.datetime.fromisoformat(b['date']))
+                count += 1
+                print('\n\nPotential duplicates:')
+                for id in[a_id, b_id]:
+                    if 'i' == id[0]:
+                        print(f'https://intervals.icu/activities/{id}')
+                    else:
+                        print(f'No i.icu link available for {id}; feature is requested upstream.')
     print(f'\n\nFound {count} duplicates')
 
 
