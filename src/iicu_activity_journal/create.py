@@ -68,7 +68,9 @@ def get(data, entry):
               help='Include commutes in logbook')
 @click.option('--pandoc/--no-pandoc', 'a_pandoc', is_flag=True, default=True, show_default=True,
               help='Run LaTeX to create PDF; if not activated, only create markdown')
-def main(a_begin, a_end, a_commute, a_pandoc):
+@click.option('-v', '--verbose', 'a_verbose', is_flag=True, default=False, show_default=True,
+              help='Include  general information in logbook')
+def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
     """Create activity journal"""
 
     # load athlete and activities info
@@ -86,10 +88,10 @@ def main(a_begin, a_end, a_commute, a_pandoc):
     if not a_commute:
         mdf.new_paragraph('(Without commutes; specify `-c` if you want commutes to be included.)')
     if athlete["email"]: mdf.new_paragraph(athlete["email"])
-    mdf.new_header(level=1, title='Story')
-    mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
+    if a_verbose:
+        mdf.new_header(level=1, title='Story')
+        mdf.new_paragraph(athlete["bio"].replace('\n', '    \n'))
     mdf.new_paragraph('---')
-
 
     # print info on the athletes activities
     mdf.new_header(level=1, title='Activities')
@@ -141,6 +143,7 @@ def main(a_begin, a_end, a_commute, a_pandoc):
                     public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
                     public_note = re.sub(r'-- myWindsock Report.*END --', '', public_note, flags=re.DOTALL)
                     public_note = re.sub(r'[👏👍].*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
+                    public_note = re.sub(r'powered by icTrainer', '', public_note, flags=re.DOTALL)
                 private_note = ''
                 if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
                     private_note = data['private_note'].replace('\r', '   ')
