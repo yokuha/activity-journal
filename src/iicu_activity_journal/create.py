@@ -144,13 +144,18 @@ def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
                 # print public and private notes
                 public_note = ''
                 if 'note' in data and data['note'] and len(data['note']) > 0:
+                    public_note = re.sub(r'-- Intervals icu.*END --', '', public_note, flags=re.DOTALL)
                     public_note = re.sub(r'-- myWindsock.com Report.*END --', '', data['note'], flags=re.DOTALL)
                     public_note = re.sub(r'-- myWindsock Report.*END --', '', public_note, flags=re.DOTALL)
                     public_note = re.sub(r'[👏👍].*-- From Wandrer.earth', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
+                    public_note = re.sub(r'[👏👍].*-- From Wandrer', '', public_note, flags=re.DOTALL).replace('\n', '    \n')
                     public_note = re.sub(r'powered by icTrainer', '', public_note, flags=re.DOTALL)
+                    public_note = re.sub(r'-- Intervals icu.*[0-9]%', '', public_note, flags=re.DOTALL)
+                    public_note = public_note.strip()
                 private_note = ''
                 if 'private_note' in data and None != data['private_note'] and len(data['private_note']) > 0:
                     private_note = data['private_note'].replace('\r', '   ')
+                    private_note = private_note.strip()
                 if len(public_note) + len(private_note) > 0:
                     mdf.new_header(level=3, title='Description')
                     mdf.new_paragraph(f'{private_note}\n{public_note}\n')
