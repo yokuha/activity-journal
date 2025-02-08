@@ -100,6 +100,10 @@ def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
                           reverse=True)):
         data = activities[id]
         try:
+            if 'duration' in data:
+                duration = f'({str(dt.timedelta(seconds=int(data["duration"]))).rsplit(sep=":", maxsplit=1)[0]} h)'
+            else:
+                duration = ""
             if (a_commute or ('commute' in data and not data['commute']) or ('commute') not in data) \
                and dt.datetime.fromisoformat(a_begin) < dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) \
                and dt.datetime.fromisoformat(data['date']).replace(tzinfo=None) < dt.datetime.fromisoformat(a_end):
@@ -109,16 +113,16 @@ def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
                         if dt.datetime.fromisoformat(data['date']).date() != dt.datetime.fromisoformat(data['end_date']).date():
                             mdf.new_header(level=2, title=f'{data["name"]}')
                             mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d")}...'
-                                           f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%a %Y-%m-%d")}')
+                                           f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%a %Y-%m-%d")} {duration}')
                         else:
                             mdf.new_header(level=2, title=f'{data["name"]}')
-                            mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")}–'
-                                           f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%H:%M")} h')
+                            mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")} h...'
+                                           f'{dt.datetime.fromisoformat(data["end_date"]).strftime("%H:%M")} h {duration}')
                     else:
                         mdf.new_header(level=2, title=f'{data["name"]}')
-                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M h")}')
+                        mdf.new_header(level=3, title=f'{dt.datetime.fromisoformat(data["date"]).strftime("%a %Y-%m-%d %H:%M")} h {duration}')
                 else:
-                    mdf.new_header(level=2, title=data['name'])
+                    mdf.new_header(level=2, title=f'{data["name"]} {duration}')
                 # print i.icu URL
                 if 'i' == id[0]:
                     mdf.new_paragraph(f'https://intervals.icu/activities/{id}\n')
