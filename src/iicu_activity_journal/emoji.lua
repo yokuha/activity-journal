@@ -1,6 +1,7 @@
 -- Render Unicode emoji as Twemoji artwork in LaTeX output.
 
 local bmp_emoji = {
+  [0x23EF] = true,
   [0x2600] = true, [0x2601] = true, [0x2602] = true, [0x2603] = true,
   [0x260E] = true, [0x2611] = true, [0x2614] = true, [0x2615] = true,
   [0x2618] = true, [0x261D] = true, [0x2620] = true, [0x2622] = true,
