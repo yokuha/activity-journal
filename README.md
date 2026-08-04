@@ -40,7 +40,9 @@ using `LaTeX` to produce a PDF, which are thus necessary to obtain a PDF. The
 markdown file is always generated.
 
 Run these scripts with `-h` options to obtain some basic help and a list of
-options.
+options. Pass `-i`/`--report-incomplete` to `iicu-activity-journal-create` to list
+restricted or incomplete activities that need to be fixed or imported at the
+source before they can appear in the journal.
 
 
 # Further comments

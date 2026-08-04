@@ -70,7 +70,9 @@ def get(data, entry):
               help='Run LaTeX to create PDF; if not activated, only create markdown')
 @click.option('-v', '--verbose', 'a_verbose', is_flag=True, default=False, show_default=True,
               help='Include  general information in logbook')
-def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
+@click.option('-i', '--report-incomplete', 'a_report_incomplete', is_flag=True, default=False, show_default=True,
+              help='Report activities whose details are unavailable')
+def main(a_begin, a_end, a_commute, a_pandoc, a_verbose, a_report_incomplete):
     """Create activity journal"""
 
     # load athlete and activities info
@@ -95,10 +97,24 @@ def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
 
     # print info on the athletes activities
     mdf.new_header(level=1, title='Activities')
+    incomplete_count = 0
     for id in dict(sorted(activities.items(),
                           key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
                           reverse=True)):
         data = activities[id]
+        activity_date = dt.datetime.fromisoformat(data['date']).replace(tzinfo=None)
+        in_date_range = (dt.datetime.fromisoformat(a_begin) < activity_date
+                         and activity_date < dt.datetime.fromisoformat(a_end))
+        if in_date_range and not data.get('name'):
+            incomplete_count += 1
+            if a_report_incomplete:
+                click.echo(
+                    f'Incomplete activity {id} on {activity_date:%Y-%m-%d %H:%M}: '
+                    'Intervals.icu supplied no name or activity details. '
+                    'Import/fix the source data if this activity should appear '
+                    f'in the journal: https://intervals.icu/activities/{id}'
+                )
+            continue
         try:
             if 'duration' in data:
                 duration = f'({str(dt.timedelta(seconds=int(data["duration"]))).rsplit(sep=":", maxsplit=1)[0]} h)'
@@ -174,6 +190,9 @@ def main(a_begin, a_end, a_commute, a_pandoc, a_verbose):
                 mdf.new_paragraph('---')
         except KeyError as err:
             print(f'KeyError in entry {id} ({err}) –> https://intervals.icu/activities/{id}')
+
+    if a_report_incomplete and incomplete_count:
+        click.echo(f'Found {incomplete_count} incomplete activity record(s).')
 
     # save markdown file
     mdf.create_md_file()
