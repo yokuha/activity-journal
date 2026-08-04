@@ -31,7 +31,7 @@ import datetime as dt
 import mdutils
 from mdutils.mdutils import MdUtils
 
-from iicu_activity_journal import pandoc_config_file
+from iicu_activity_journal import pandoc_config_file, pandoc_emoji_filter_file
 from iicu_activity_journal.iicu import activities_file, athlete_file, athlete_id, logbook_basename
 from iicu_activity_journal import validate
 
@@ -201,7 +201,9 @@ def main(a_begin, a_end, a_commute, a_pandoc, a_verbose, a_report_incomplete):
     if a_pandoc:
         print('activity journal updated, creating PDF')
         import subprocess
-        subprocess.call(['pandoc', '-d', f'{pandoc_config_file}', '-o', f'{logbook_basename}.pdf', f'{logbook_basename}.md'])
+        subprocess.call(['pandoc', '-d', f'{pandoc_config_file}',
+                         '--lua-filter', f'{pandoc_emoji_filter_file}',
+                         '-o', f'{logbook_basename}.pdf', f'{logbook_basename}.md'])
     else:
         print('activity journal updated, but not creating PDF')
 

@@ -13,6 +13,8 @@ variables:
     keep_tex: no
     header-includes:
     - \usepackage{enumitem}
+    - \usepackage{twemojis}
+    - \AtBeginDocument{\pdfstringdefDisableCommands{\def\texttwemoji#1{}}}
     - \renewlist{itemize}{itemize}{20}
     - \renewlist{enumerate}{enumerate}{20}
     - \setlist[itemize]{label=$\cdot$}

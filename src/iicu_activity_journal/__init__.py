@@ -18,3 +18,4 @@
 import os.path
 
 pandoc_config_file = os.path.join(os.path.dirname(__file__), 'pandoc.yaml')
+pandoc_emoji_filter_file = os.path.join(os.path.dirname(__file__), 'emoji.lua')

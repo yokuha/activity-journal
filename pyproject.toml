@@ -33,4 +33,4 @@ iicu-activity-journal-duplicates = "iicu_activity_journal.duplicates:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-iicu_activity_journal = ["pandoc.yaml"]
+iicu_activity_journal = ["pandoc.yaml", "emoji.lua"]

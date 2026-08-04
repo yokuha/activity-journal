@@ -37,7 +37,8 @@ Get your activities from i.icu and add them to your local database running
 Create a PDF file of the data using `iicu-activity-journal-create`; this script
 creates a markdown file of the data. It can also pass this through `pandoc`,
 using `LaTeX` to produce a PDF, which are thus necessary to obtain a PDF. The
-markdown file is always generated.
+markdown file is always generated. The LaTeX installation must include the
+`twemojis` package so Unicode emoji can be embedded as color vector artwork.
 
 Run these scripts with `-h` options to obtain some basic help and a list of
 options. Pass `-i`/`--report-incomplete` to `iicu-activity-journal-create` to list
