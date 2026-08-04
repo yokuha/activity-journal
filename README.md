@@ -32,7 +32,10 @@ In addition, you need a current Python installation with common packages, see
 # Usage
 
 Get your activities from i.icu and add them to your local database running
-`iicu-activity-journal-update-data`.
+`iicu-activity-journal-update-data`. By default, the updater prunes local
+incomplete records inside the requested date range when Intervals.icu no longer
+returns them. Complete historical activities and events are preserved. Pass
+`--keep-missing` to retain incomplete records as well.
 
 Create a PDF file of the data using `iicu-activity-journal-create`; this script
 creates a markdown file of the data. It can also pass this through `pandoc`,

@@ -22,6 +22,7 @@
 import json
 
 import click
+import datetime as dt
 import requests
 import time
 
@@ -62,7 +63,9 @@ def iicu_data(request):
               help='End of date range for data download')
 @click.option('-s', '--sort', 'a_sort', is_flag=True, default=False, show_default=True,
               help='Sort logbook entries for saving')
-def main(a_begin, a_end, a_sort):
+@click.option('--prune-missing/--keep-missing', 'a_prune_missing', default=True, show_default=True,
+              help='Remove incomplete local entries absent from the downloaded date range')
+def main(a_begin, a_end, a_sort, a_prune_missing):
     """Collect data from intervals.icu API for the activity journal"""
 
     # Get current athlete info and store locally
@@ -81,11 +84,14 @@ def main(a_begin, a_end, a_sort):
     except FileNotFoundError:
         pass
 
+    returned_ids = set()
+
     # Get the list of activities in date range
     data = iicu_data(f'https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={a_begin}&newest={a_end}')
     # extract logbook data and store in db
     for a in data:
         a_id = str(a['id'])
+        returned_ids.add(a_id)
         # Get notes of activity
         a['messages'] = iicu_data(f'https://intervals.icu//api/v1/activity/{a_id}/messages')
         if a_id not in activities:
@@ -100,14 +106,40 @@ def main(a_begin, a_end, a_sort):
     for a in data:
         a_id = str(a['id'])
         if a['category'] in ['HOLIDAY', 'INJURED', 'NOTE', 'RACE_A', 'RACE_B', 'RACE_C']:
+            returned_ids.add(a_id)
             if a_id not in activities:
                 activities[a_id] = {}
             for i in item_names.items():
                 if i[1] in a:
                     activities[a_id].update({i[0]:a[i[1]]})
 
+    if a_prune_missing:
+        try:
+            oldest = dt.date.fromisoformat(a_begin)
+            newest = dt.date.fromisoformat(a_end)
+        except ValueError as err:
+            raise click.ClickException(
+                '--begin and --end must use the YYYY-MM-DD format when pruning.'
+            ) from err
+
+        pruned_ids = []
+        for a_id, activity in list(activities.items()):
+            try:
+                activity_date = dt.datetime.fromisoformat(activity['date']).date()
+            except (KeyError, TypeError, ValueError):
+                continue
+            if (oldest <= activity_date <= newest
+                    and a_id not in returned_ids
+                    and not activity.get('name')):
+                del activities[a_id]
+                pruned_ids.append(a_id)
+
+        for a_id in pruned_ids:
+            click.echo(f'Pruned local entry {a_id}; it is no longer returned by Intervals.icu.')
+        if pruned_ids:
+            click.echo(f'Pruned {len(pruned_ids)} missing local record(s).')
+
     if a_sort:
-        import datetime as dt
         activities = dict(sorted(activities.items(),
                                  key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
                                  reverse=True))
@@ -120,7 +152,7 @@ def main(a_begin, a_end, a_sort):
 
 
 if __name__ == "__main__":
-    main(0,0)
+    main()
 
 
 
