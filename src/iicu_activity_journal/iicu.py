@@ -17,7 +17,50 @@
 
 
 import base64
-from iicu_activity_journal.settings import athlete_id, api_key
+import os
+import shlex
+import subprocess
+from pathlib import Path
+
+
+def load_credentials():
+    """Read the athlete ID and API key from an encrypted authinfo file."""
+    authinfo_file = Path(
+        os.environ.get('IICU_AUTHINFO_FILE', '~/.authinfo.gpg')
+    ).expanduser()
+    try:
+        result = subprocess.run(
+            ['gpg', '--quiet', '--decrypt', str(authinfo_file)],
+            capture_output=True,
+            check=True,
+            encoding='utf-8',
+        )
+    except FileNotFoundError as err:
+        raise RuntimeError(
+            'The gpg executable is required to read credentials.'
+        ) from err
+    except subprocess.CalledProcessError as err:
+        raise RuntimeError(f'Could not decrypt {authinfo_file}.') from err
+
+    for line in result.stdout.splitlines():
+        fields = shlex.split(line, comments=True)
+        if len(fields) < 2 or fields[0] != 'machine':
+            continue
+        entry = dict(zip(fields[::2], fields[1::2]))
+        if entry.get('machine') == 'intervals.icu':
+            try:
+                return entry['login'], entry['password']
+            except KeyError as err:
+                raise RuntimeError(
+                    'The intervals.icu authinfo entry needs login and password.'
+                ) from err
+
+    raise RuntimeError(
+        f'No intervals.icu machine entry found in {authinfo_file}.'
+    )
+
+
+athlete_id, api_key = load_credentials()
 
 # API_KEY for basic authentication
 auth_key = b'Basic ' + base64.b64encode(f'API_KEY:{api_key}'.encode('ascii'))

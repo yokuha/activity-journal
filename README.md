@@ -8,9 +8,16 @@ intervals.icu activities.
 
 1. Download or clone this package from github.
 2. Get your athlete ID and API key from the Developer settings at
-   https://intervals.icu/settings and create/update
-   `src/iicu_activity_journal/settings.py` with that info using the format from
-   `settings-template.py`.
+   https://intervals.icu/settings and add this entry to your encrypted
+   `~/.authinfo.gpg` file:
+
+   ```text
+   machine intervals.icu login your-athlete-id password your-api-key
+   ```
+
+   Use an editor or password manager that decrypts and re-encrypts authinfo
+   files without leaving a plaintext copy behind. Set `IICU_AUTHINFO_FILE` if
+   your encrypted authinfo file is stored elsewhere.
 3. Run `pip install .` and you are set.
 
 ## Prerequisites
@@ -19,7 +26,7 @@ You'll obviously need access to an account at https://intervals.icu – preferab
 your own or one of your client.
 
 In addition, you need a current Python installation with common packages, see
-`pyproject.toml` for details.
+`pyproject.toml` for details, and GnuPG (`gpg`) to decrypt the authinfo file.
 
 
 # Usage

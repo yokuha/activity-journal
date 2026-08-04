@@ -75,7 +75,9 @@ def main(a_begin, a_end, a_sort):
         with open(activities_file, 'r', encoding='utf-8') as db:
             activities = dict(json.load(db, object_pairs_hook=validate.validate_data))
     except ValueError as err:
-        print(err)
+        raise click.ClickException(
+            f'Cannot update {activities_file}: {err}'
+        ) from err
     except FileNotFoundError:
         pass
 
