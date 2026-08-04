@@ -26,8 +26,14 @@ import datetime as dt
 import requests
 import time
 
-from iicu_activity_journal import iicu
-from iicu_activity_journal.iicu import activities_file, athlete_id, athlete_file, auth_key, item_names
+from iicu_activity_journal.iicu import (
+    activities_file,
+    athlete_id,
+    athlete_file,
+    auth_key,
+    historic_activities_file,
+    item_names,
+)
 from iicu_activity_journal import validate
 
 
@@ -64,7 +70,7 @@ def iicu_data(request):
 @click.option('-s', '--sort', 'a_sort', is_flag=True, default=False, show_default=True,
               help='Sort logbook entries for saving')
 @click.option('--prune-missing/--keep-missing', 'a_prune_missing', default=True, show_default=True,
-              help='Remove incomplete local entries absent from the downloaded date range')
+              help='Archive complete and delete incomplete entries that are absent, for the specified date range')
 def main(a_begin, a_end, a_sort, a_prune_missing):
     """Collect data from intervals.icu API for the activity journal"""
 
@@ -80,6 +86,17 @@ def main(a_begin, a_end, a_sort, a_prune_missing):
     except ValueError as err:
         raise click.ClickException(
             f'Cannot update {activities_file}: {err}'
+        ) from err
+    except FileNotFoundError:
+        pass
+
+    historic_activities = {}
+    try:
+        with open(historic_activities_file, 'r', encoding='utf-8') as db:
+            historic_activities = dict(json.load(db, object_pairs_hook=validate.validate_data))
+    except ValueError as err:
+        raise click.ClickException(
+            f'Cannot update {historic_activities_file}: {err}'
         ) from err
     except FileNotFoundError:
         pass
@@ -122,31 +139,57 @@ def main(a_begin, a_end, a_sort, a_prune_missing):
                 '--begin and --end must use the YYYY-MM-DD format when pruning.'
             ) from err
 
-        pruned_ids = []
+        archived_ids = []
+        deleted_ids = []
         for a_id, activity in list(activities.items()):
             try:
                 activity_date = dt.datetime.fromisoformat(activity['date']).date()
             except (KeyError, TypeError, ValueError):
                 continue
-            if (oldest <= activity_date <= newest
-                    and a_id not in returned_ids
-                    and not activity.get('name')):
+            if oldest <= activity_date <= newest and a_id not in returned_ids:
+                if activity.get('name'):
+                    archived_activity = historic_activities.get(a_id)
+                    if not isinstance(archived_activity, dict):
+                        archived_activity = {}
+                    archived_activity.update(activity)
+                    historic_activities[a_id] = archived_activity
+                    archived_ids.append(a_id)
+                else:
+                    deleted_ids.append(a_id)
                 del activities[a_id]
-                pruned_ids.append(a_id)
 
-        for a_id in pruned_ids:
-            click.echo(f'Pruned local entry {a_id}; it is no longer returned by Intervals.icu.')
-        if pruned_ids:
-            click.echo(f'Pruned {len(pruned_ids)} missing local record(s).')
+        for a_id in archived_ids:
+            click.echo(
+                f'Archived missing entry {a_id} in {historic_activities_file}; '
+                'it is no longer returned by Intervals.icu.'
+            )
+        for a_id in deleted_ids:
+            click.echo(
+                f'Deleted incomplete missing entry {a_id}; '
+                'it is no longer returned by Intervals.icu.'
+            )
+        if archived_ids:
+            click.echo(f'Archived {len(archived_ids)} complete missing local record(s).')
+        if deleted_ids:
+            click.echo(f'Deleted {len(deleted_ids)} incomplete missing local record(s).')
 
     if a_sort:
         activities = dict(sorted(activities.items(),
                                  key=lambda item: dt.datetime.fromisoformat(item[1]['date']),
                                  reverse=True))
+        historic_activities = dict(sorted(
+            historic_activities.items(),
+            key=lambda item: item[1].get('date', '') if isinstance(item[1], dict) else '',
+            reverse=True,
+        ))
 
+    # Save the archive first. If saving the active data then fails, no record is lost.
+    if a_prune_missing and archived_ids:
+        with open(historic_activities_file, 'w', encoding='utf-8') as db:
+            json.dump(historic_activities, db, indent=4)
 
     # save updated/current data
-    with open(iicu.activities_file, 'w', encoding='utf-8') as db:
+    with open(activities_file, 'w', encoding='utf-8') as db:
         json.dump(activities, db, indent=4)
 
 

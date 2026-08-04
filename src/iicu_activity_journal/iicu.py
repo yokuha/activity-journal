@@ -68,6 +68,7 @@ auth_key = b'Basic ' + base64.b64encode(f'API_KEY:{api_key}'.encode('ascii'))
 # Filenames for local storage of activity data
 logbook_basename = f'logbook-{athlete_id}'
 activities_file = logbook_basename + '-activity-data.json'
+historic_activities_file = logbook_basename + '-historic-activity-data.json'
 athlete_file = logbook_basename + '-athlete-info.json'
 
 # activity items to store locally and their logbook output names
