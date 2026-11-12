@@ -1,8 +1,9 @@
+# Personal data and generated output: never commit these
 archive/
-*.html
-*.json
-*.md
-*.pdf
+backup/
+/logbook-*
+/README.pdf
+.DS_Store
 
 
 # Byte-compiled / optimized / DLL files

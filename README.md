@@ -29,6 +29,31 @@ In addition, you need a current Python installation with common packages, see
 `pyproject.toml` for details, and GnuPG (`gpg`) to decrypt the authinfo file.
 
 
+# Archive (new)
+
+`iicu-journal archive all` saves your intervals.icu data as reproducible,
+gzip-compressed JSON files in the archive directory: `./archive` by default
+(relative to the current directory), or whatever you give with `--archive-dir`
+or the environment variable `IICU_ARCHIVE_DIR` (a full path is fine). Each run
+adds one line to a logbook, by default `<archive dir>/logbook.md`; use
+`--logbook` or `IICU_LOGBOOK` to write into another Markdown file, e.g. the
+README of a private data repository. The command is read-only on the server
+and incremental: existing per-activity files are kept, and files of the last 30
+days are fetched again because notes are often edited afterwards.
+
+It saves the athlete profile and sport settings, gear (including components),
+activities with details and intervals, the notes/messages of every activity,
+calendar events (notes, races, holidays, injuries, ...), and wellness data.
+Single parts are available as `archive activities|messages|events|athlete|gear|wellness`.
+FIT/GPX files and per-second streams are not included.
+
+Credentials are looked up in the environment variables
+`INTERVALS_ICU_ATHLETE_ID` and `INTERVALS_ICU_API_KEY`, then in a `.env` file
+(`--env`, or `./.env`), then in the encrypted authinfo file described
+above. Keep your archive directory outside this repository or in a private
+repository; it contains personal data.
+
+
 # Usage
 
 Get your activities from i.icu and add them to your local database running
