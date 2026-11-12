@@ -50,6 +50,7 @@ class Entry:
     lr_balance: float | None = None  # percent right
     rpe: float | None = None
     calories: float | None = None
+    tags: list[str] = field(default_factory=list)
     messages: list[Message] = field(default_factory=list)
 
     @property
@@ -113,7 +114,7 @@ def _activity(raw, directory):
         avg_power=raw.get('icu_average_watts'), ftp=raw.get('icu_ftp'),
         intensity=raw.get('icu_intensity'), lr_balance=raw.get('avg_lr_balance'),
         rpe=raw.get('icu_rpe'), calories=raw.get('calories'),
-        messages=_messages(directory, raw['id']),
+        tags=list(raw.get('tags') or []), messages=_messages(directory, raw['id']),
     )
 
 
@@ -125,7 +126,7 @@ def _event(raw):
         id=str(raw['id']), kind='event', start=start,
         name=raw.get('name') or '', type=raw.get('type') or '',
         category=raw['category'], end=_parse(raw.get('end_date_local')),
-        note=raw.get('description') or '',
+        note=raw.get('description') or '', tags=list(raw.get('tags') or []),
     )
 
 

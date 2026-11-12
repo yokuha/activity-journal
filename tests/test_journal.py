@@ -10,7 +10,8 @@ from iicu_activity_journal.entries import load_archive
 
 def test_load_archive_merges_activities_events_and_messages(archive_dir):
     archive = load_archive(archive_dir)
-    assert {e.id for e in archive.entries} == {'999', 'i10', 'i11', 'i12', 'i13', '77', '78'}
+    assert {e.id for e in archive.entries} == {
+        '999', 'i10', 'i11', 'i12', 'i13', 'i14', 'i15', '77', '78'}
     assert 'WORKOUT' not in {e.category for e in archive.entries}
     ride = next(e for e in archive.entries if e.id == 'i10')
     assert [m.content for m in ride.messages] == ['IICU-FOOD\nWater: 1 l', 'photo']
@@ -92,3 +93,42 @@ def test_duplicates_command(archive_dir):
     assert result.exit_code == 0
     assert 'https://intervals.icu/activities/i12' in result.output
     assert 'Found 1 potential duplicate' in result.output
+
+
+def _ids(archive_dir, tmp_path, **selection):
+    archive = load_archive(archive_dir)
+    mdf, _ = render.build_journal(archive, JournalConfig(), tmp_path / 'j.md', **selection)
+    return mdf.file_data_text
+
+
+def test_type_selection_is_case_insensitive_and_drops_events(archive_dir, tmp_path):
+    text = _ids(archive_dir, tmp_path, types=('weighttraining', 'WORKOUT'))
+    assert 'Strength' in text and 'Core' in text
+    assert 'Morning ride' not in text and 'Chain waxed' not in text
+    assert '(Selection: type weighttraining, WORKOUT.)' in text
+
+
+def test_tag_selection_and_combination(archive_dir, tmp_path):
+    text = _ids(archive_dir, tmp_path, tags=('KRAFT',))
+    assert 'Strength' in text and 'Core' in text and 'Morning ride' not in text
+    text = _ids(archive_dir, tmp_path, types=('WeightTraining',), tags=('kraft',))
+    assert 'Strength' in text and 'Core' not in text      # both must match
+
+
+def test_with_events_keeps_calendar_notes(archive_dir, tmp_path):
+    text = _ids(archive_dir, tmp_path, tags=('kraft',), with_events=True)
+    assert 'Chain waxed' in text and 'Strength' in text
+
+
+def test_selection_suffix():
+    assert render.selection_suffix() == ''
+    assert render.selection_suffix(('WeightTraining',), ('Kraft Reha',)) == (
+        '-weighttraining-tag-kraftreha')
+
+
+def test_create_with_type_writes_separate_file(archive_dir, tmp_path):
+    result = CliRunner().invoke(cli.main, [
+        'create', '--archive-dir', str(archive_dir), '--output-dir', str(tmp_path),
+        '--no-pandoc', '-t', 'WeightTraining'])
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / 'journal-i1-weighttraining.md').is_file()

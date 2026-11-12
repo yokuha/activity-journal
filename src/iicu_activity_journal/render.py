@@ -105,8 +105,35 @@ def in_range(entry, begin, end):
     return (begin is None or day >= begin) and (end is None or day <= end)
 
 
+def selected(entry, types=(), tags=(), with_events=False):
+    """Apply the type/tag selection.
+
+    Within ``types`` and within ``tags`` any match is enough, an entry has to
+    satisfy both lists if both are given (case-insensitive). With a selection,
+    calendar events are only kept if ``with_events`` is set.
+    """
+    if not types and not tags:
+        return True
+    if entry.kind == 'event':
+        return with_events
+    if types and entry.type.lower() not in {t.lower() for t in types}:
+        return False
+    return not tags or bool({t.lower() for t in tags} & {t.lower() for t in entry.tags})
+
+
+def _slug(text):
+    return re.sub(r'[^a-z0-9]+', '', text.lower())
+
+
+def selection_suffix(types=(), tags=()):
+    """File name suffix for a selection, e.g. ``-weighttraining-tag-kraft``."""
+    parts = [_slug(t) for t in types] + [f'tag-{_slug(t)}' for t in tags]
+    return ''.join(f'-{part}' for part in parts)
+
+
 def build_journal(archive, config, md_path, *, begin=None, end=None,
-                  commute=False, verbose=False):
+                  commute=False, verbose=False, types=(), tags=(),
+                  with_events=False):
     """Create the Markdown document; return ``(MdUtils, incomplete entries)``."""
     athlete = archive.athlete
     name = athlete.get('name', 'unknown')
@@ -119,6 +146,10 @@ def build_journal(archive, config, md_path, *, begin=None, end=None,
     if not commute:
         mdf.new_paragraph('(Without commutes; specify `-c` if you want commutes '
                           'to be included.)')
+    if types or tags:
+        chosen = [f'type {", ".join(types)}'] if types else []
+        chosen += [f'tag {", ".join(tags)}'] if tags else []
+        mdf.new_paragraph(f'(Selection: {"; ".join(chosen)}.)')
     if config.show_email and athlete.get('email'):
         mdf.new_paragraph(athlete['email'])
     if verbose and athlete.get('bio'):
@@ -130,6 +161,8 @@ def build_journal(archive, config, md_path, *, begin=None, end=None,
     incomplete = []
     for entry in archive.entries:
         if not in_range(entry, begin, end):
+            continue
+        if not selected(entry, types, tags, with_events):
             continue
         if entry.kind == 'activity' and entry.incomplete:
             incomplete.append(entry)

@@ -65,7 +65,10 @@ repository; it contains personal data.
    can be embedded as color vector artwork. All activities, calendar notes
    (notes, races, holidays, injuries, sickness) and the notes/messages of every
    activity are included; use `-c` to include commutes and `-b`/`-e` to limit
-   the date range.
+   the date range. `-t/--type WeightTraining` (repeatable) and `--tag Kraft`
+   restrict the journal to activities of that type or with that tag; the result
+   gets its own file name (`journal-<id>-weighttraining.md`), and calendar notes
+   are left out unless you add `--with-events`.
 3. Optional: `iicu-journal duplicates` lists activities that start and end at
    about the same time, `iicu-journal create -i` lists restricted or incomplete
    activities (for example from Strava) that need to be fixed or imported at the

@@ -280,6 +280,15 @@ def _optional_date(ctx, param, value):
 @click.option('-b', '--begin', callback=_optional_date, help='First date, YYYY-MM-DD.')
 @click.option('-e', '--end', callback=_optional_date, help='Last date, YYYY-MM-DD.')
 @click.option('-c', '--commute', is_flag=True, help='Include commutes.')
+@click.option('-t', '--type', 'types', multiple=True,
+              help='Only activities of this type, e.g. WeightTraining; repeatable '
+                   '(any of them), not case-sensitive.')
+@click.option('--tag', 'tags', multiple=True,
+              help='Only activities with this tag; repeatable (any of them). '
+                   'Combined with --type, both must match.')
+@click.option('--with-events', is_flag=True,
+              help='Keep calendar notes, races, holidays, ... when --type/--tag '
+                   'is used (they are dropped otherwise).')
 @click.option('--pandoc/--no-pandoc', 'use_pandoc', default=True, show_default=True,
               help='Create a PDF with pandoc/LaTeX; otherwise only Markdown.')
 @click.option('-v', '--verbose', is_flag=True, help='Include the athlete bio.')
@@ -287,7 +296,7 @@ def _optional_date(ctx, param, value):
               help='List activities whose details are unavailable.')
 @_guard
 def create_cmd(archive_dir, config_file, output_dir, begin, end, commute,
-               use_pandoc, verbose, report_incomplete):
+               types, tags, with_events, use_pandoc, verbose, report_incomplete):
     """Create the journal (Markdown and PDF) from the archive."""
     archive_path = Path(archive_dir).expanduser()
     archive = load_archive(archive_path)
@@ -295,11 +304,12 @@ def create_cmd(archive_dir, config_file, output_dir, begin, end, commute,
     athlete_id = archive.athlete.get('id', 'unknown')
     out = Path(output_dir).expanduser()
     out.mkdir(parents=True, exist_ok=True)
-    md_path = out / f'journal-{athlete_id}.md'
+    suffix = render.selection_suffix(types, tags)
+    md_path = out / f'journal-{athlete_id}{suffix}.md'
 
     mdf, incomplete = render.build_journal(
         archive, config, md_path, begin=begin, end=end, commute=commute,
-        verbose=verbose)
+        verbose=verbose, types=types, tags=tags, with_events=with_events)
     mdf.create_md_file()
     click.echo(f'Markdown written to {md_path}.')
     if report_incomplete:
