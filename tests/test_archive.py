@@ -75,3 +75,38 @@ def test_wellness_csv_only_rows_with_hrv(make_client, tmp_path):
         rows = list(csv.reader(fh))
     assert rows == [['date', 'hrv_rmssd', 'hrv_sdnn', 'baevsky_si'],
                     ['2024-01-02', '55.5', '', '80']]
+
+
+def test_partial_run_extends_instead_of_replacing(make_client, tmp_path):
+    from iicu_activity_journal.store import write_json_gz
+    write_json_gz(tmp_path / 'activities.json.gz', [
+        {'id': 'i1', 'start_date_local': '2020-01-01T10:00:00', 'name': 'old'},
+        {'id': 'i2', 'start_date_local': '2026-10-05T10:00:00', 'name': 'stale'},
+        {'id': 'i3', 'start_date_local': '2026-10-06T10:00:00', 'name': 'deleted at source'},
+    ])
+    client, _ = make_client({'/activities': [
+        {'id': 'i2', 'start_date_local': '2026-10-05T10:00:00', 'name': 'fresh'}]})
+    ar.archive_activities(client, tmp_path, date(2026, 10, 1), date(2026, 11, 1))
+    saved = {a['id']: a['name'] for a in read_json_gz(tmp_path / 'activities.json.gz')}
+    assert saved == {'i1': 'old', 'i2': 'fresh'}
+    assert not (tmp_path / 'activities.csv.gz').exists()
+
+
+def test_partial_wellness_run_keeps_older_days(make_client, tmp_path):
+    from iicu_activity_journal.store import write_json_gz
+    write_json_gz(tmp_path / 'wellness.json.gz', [{'id': '2020-01-01', 'hrv': 40}])
+    client, _ = make_client({'/wellness': [{'id': '2026-10-02', 'hrv': 60}]})
+    ar.archive_wellness(client, tmp_path, date(2026, 10, 1), date(2026, 10, 3))
+    assert [r['id'] for r in read_json_gz(tmp_path / 'wellness.json.gz')] == [
+        '2020-01-01', '2026-10-02']
+    csv_text = (tmp_path / ar.HRV_CSV_NAME).read_text()
+    assert '2020-01-01,40' in csv_text and '2026-10-02,60' in csv_text
+
+
+def test_hrv_csv_keeps_rows_from_an_older_csv(make_client, tmp_path):
+    (tmp_path / ar.HRV_CSV_NAME).write_text(
+        'date,hrv_rmssd,hrv_sdnn,baevsky_si\n2019-05-05,33,,70\n')
+    client, _ = make_client({'/wellness': [{'id': '2026-10-02', 'hrv': 60}]})
+    ar.archive_wellness(client, tmp_path, date(2026, 10, 1), date(2026, 10, 3))
+    text = (tmp_path / ar.HRV_CSV_NAME).read_text()
+    assert '2019-05-05,33,,70' in text and '2026-10-02,60' in text

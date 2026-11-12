@@ -66,6 +66,28 @@ def _no_echo(_message):
     pass
 
 
+def merge_records(path, fetched, start, end, key, day):
+    """Combine ``fetched`` records with those already saved at ``path``.
+
+    Saved records inside ``start``..``end`` are dropped (the server is
+    authoritative for that range), everything outside is kept, so a run for a
+    short period never shrinks the archive. ``key(record)`` is the unique id,
+    ``day(record)`` the ISO date of the record.
+    """
+    merged = {}
+    if Path(path).is_file():
+        for record in read_json_gz(path):
+            if not start.isoformat() <= (day(record) or '')[:10] <= end.isoformat():
+                merged[key(record)] = record
+    for record in fetched:
+        merged[key(record)] = record
+    return list(merged.values())
+
+
+def _start_day(record):
+    return record.get('start_date_local') or ''
+
+
 def archive_athlete(client, out, echo=_no_echo):
     write_json_gz(out / 'athlete.json.gz',
                   client.get_json(client.athlete_path('profile')))
@@ -109,10 +131,22 @@ def load_activities(out):
 
 
 def archive_activities(client, out, start, end, echo=_no_echo):
-    """Save the list of activities (JSON and CSV); return it."""
+    """Save the list of activities (JSON and CSV); return the fetched ones.
+
+    The saved list is extended: only the requested range is replaced. The CSV
+    export is not mergeable and is therefore only written for a run that
+    starts at the default start date or earlier.
+    """
     activities = list_activities(client, start, end, echo)
-    write_json_gz(out / 'activities.json.gz', activities)
-    echo(f'{len(activities)} activities listed.')
+    path = out / 'activities.json.gz'
+    merged = merge_records(path, activities, start, end,
+                           key=lambda a: str(a['id']), day=_start_day)
+    merged.sort(key=lambda a: (_start_day(a), str(a['id'])))
+    write_json_gz(path, merged)
+    echo(f'{len(activities)} activities listed, {len(merged)} in the archive.')
+    if start > DEFAULT_START:
+        echo('Note: activities.csv.gz not updated for a partial range.')
+        return activities
     try:
         write_gz(out / 'activities.csv.gz',
                  client.get(client.athlete_path('activities.csv'),
@@ -178,10 +212,12 @@ def archive_events(client, out, start, end, echo=_no_echo):
         for event in data:
             if event.get('id') is not None:
                 found[str(event['id'])] = event
-    events = sorted(found.values(),
-                    key=lambda e: (e.get('start_date_local') or '', str(e['id'])))
-    write_json_gz(out / 'events.json.gz', events)
-    echo(f'{len(events)} events saved.')
+    path = out / 'events.json.gz'
+    events = merge_records(path, found.values(), start, end,
+                           key=lambda e: str(e['id']), day=_start_day)
+    events.sort(key=lambda e: (_start_day(e), str(e['id'])))
+    write_json_gz(path, events)
+    echo(f'{len(found)} events fetched, {len(events)} in the archive.')
     return f'{len(events)} events'
 
 
@@ -193,20 +229,30 @@ def archive_wellness(client, out, start, end, echo=_no_echo):
         for record in data:
             if record.get('id'):
                 records[record['id']] = record
-    write_json_gz(out / 'wellness.json.gz',
-                  [records[day] for day in sorted(records)])
+    path = out / 'wellness.json.gz'
+    merged = merge_records(path, records.values(), start, end,
+                           key=lambda r: r['id'], day=lambda r: r['id'])
+    merged.sort(key=lambda r: r['id'])
+    write_json_gz(path, merged)
+    records = {r['id']: r for r in merged}
 
-    rows = []
-    for day in sorted(records):
-        record = records[day]
+    csv_path = Path(out) / HRV_CSV_NAME
+    # An earlier CSV may hold days that wellness.json.gz does not (yet): keep
+    # every row outside the requested range.
+    rows = {}
+    if csv_path.is_file():
+        with open(csv_path, newline='', encoding='utf-8') as fh:
+            for row in list(csv.reader(fh))[1:]:
+                if row and not start.isoformat() <= row[0] <= end.isoformat():
+                    rows[row[0]] = row
+    for day, record in records.items():
         values = (record.get('hrv'), record.get('hrvSDNN'), record.get('baevskySI'))
         if any(v is not None for v in values):
-            rows.append([day] + ['' if v is None else v for v in values])
-    path = Path(out) / HRV_CSV_NAME
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, 'w', newline='', encoding='utf-8') as fh:
+            rows[day] = [day] + ['' if v is None else v for v in values]
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(csv_path, 'w', newline='', encoding='utf-8') as fh:
         writer = csv.writer(fh)
         writer.writerow(['date', 'hrv_rmssd', 'hrv_sdnn', 'baevsky_si'])
-        writer.writerows(rows)
-    echo(f'{len(records)} wellness days saved, {len(rows)} with HRV data.')
+        writer.writerows(rows[day] for day in sorted(rows))
+    echo(f'{len(records)} wellness days in the archive, {len(rows)} days with HRV data in the CSV.')
     return f'{len(records)} wellness days'
