@@ -17,14 +17,18 @@
 
 import functools
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import click
 
 from iicu_activity_journal import archive as ar
+from iicu_activity_journal import render
 from iicu_activity_journal.api import ApiError, IntervalsClient
+from iicu_activity_journal.config import load_config
 from iicu_activity_journal.credentials import CredentialsError, load_credentials
+from iicu_activity_journal.duplicates import find_duplicates
+from iicu_activity_journal.entries import load_archive
 from iicu_activity_journal.store import append_logbook
 
 
@@ -37,12 +41,18 @@ def _iso_date(_ctx, _param, value):
         raise click.BadParameter('use the format YYYY-MM-DD') from None
 
 
+def _archive_dir_option(func):
+    return click.option(
+        '--archive-dir', envvar='IICU_ARCHIVE_DIR', default='archive',
+        show_default=True, type=click.Path(file_okay=False),
+        help='Directory of the archived data; relative paths are relative to '
+             'the current directory.')(func)
+
+
 def _common_options(func):
+    func = _archive_dir_option(func)
+
     options = [
-        click.option('--archive-dir', envvar='IICU_ARCHIVE_DIR', default='archive',
-                     show_default=True, type=click.Path(file_okay=False),
-                     help='Directory that receives the archived data; relative '
-                          'paths are relative to the current directory.'),
         click.option('--env', 'env_file', type=click.Path(dir_okay=False),
                      help='.env file with INTERVALS_ICU_API_KEY and '
                           'INTERVALS_ICU_ATHLETE_ID (default: ./.env, then '
@@ -253,6 +263,110 @@ def archive_wellness_cmd(archive_dir, env_file, logbook, no_log, start, end):
     session.summary.append(
         ar.archive_wellness(session.client, session.out, start, end, session.echo))
     session.finish()
+
+
+def _optional_date(ctx, param, value):
+    return _iso_date(ctx, param, value) if value else None
+
+
+@main.command('create')
+@_archive_dir_option
+@click.option('--config', 'config_file', envvar='IICU_JOURNAL_CONFIG',
+              type=click.Path(dir_okay=False),
+              help='TOML file with personal settings (default: '
+                   '<archive dir>/journal.toml if it exists).')
+@click.option('--output-dir', default='.', show_default=True,
+              type=click.Path(file_okay=False), help='Where to write the journal.')
+@click.option('-b', '--begin', callback=_optional_date, help='First date, YYYY-MM-DD.')
+@click.option('-e', '--end', callback=_optional_date, help='Last date, YYYY-MM-DD.')
+@click.option('-c', '--commute', is_flag=True, help='Include commutes.')
+@click.option('--pandoc/--no-pandoc', 'use_pandoc', default=True, show_default=True,
+              help='Create a PDF with pandoc/LaTeX; otherwise only Markdown.')
+@click.option('-v', '--verbose', is_flag=True, help='Include the athlete bio.')
+@click.option('-i', '--report-incomplete', is_flag=True,
+              help='List activities whose details are unavailable.')
+@_guard
+def create_cmd(archive_dir, config_file, output_dir, begin, end, commute,
+               use_pandoc, verbose, report_incomplete):
+    """Create the journal (Markdown and PDF) from the archive."""
+    archive_path = Path(archive_dir).expanduser()
+    archive = load_archive(archive_path)
+    config = load_config(config_file or archive_path / 'journal.toml')
+    athlete_id = archive.athlete.get('id', 'unknown')
+    out = Path(output_dir).expanduser()
+    out.mkdir(parents=True, exist_ok=True)
+    md_path = out / f'journal-{athlete_id}.md'
+
+    mdf, incomplete = render.build_journal(
+        archive, config, md_path, begin=begin, end=end, commute=commute,
+        verbose=verbose)
+    mdf.create_md_file()
+    click.echo(f'Markdown written to {md_path}.')
+    if report_incomplete:
+        for entry in incomplete:
+            click.echo(
+                f'Incomplete activity {entry.id} on {entry.start:%Y-%m-%d %H:%M}: '
+                'Intervals.icu supplied no name or activity details. Import/fix '
+                'the source data if it should appear in the journal: '
+                f'https://intervals.icu/activities/{entry.id}')
+        click.echo(f'Found {len(incomplete)} incomplete activity record(s).')
+    if archive.skipped:
+        click.echo(f'Skipped {archive.skipped} record(s) without a start date.')
+    if use_pandoc:
+        try:
+            render.run_pandoc(md_path, md_path.with_suffix('.pdf'))
+        except RuntimeError as err:
+            raise click.ClickException(str(err)) from err
+        click.echo(f'PDF written to {md_path.with_suffix(".pdf")}.')
+
+
+@main.command('duplicates')
+@_archive_dir_option
+@click.option('-b', '--begin', callback=_optional_date, help='First date, YYYY-MM-DD.')
+@click.option('-e', '--end', callback=_optional_date, help='Last date, YYYY-MM-DD.')
+@click.option('-c', '--commute', is_flag=True, help='Include commutes.')
+@click.option('--start-gap', default=15, show_default=True,
+              help='Maximum difference of start times in minutes.')
+@click.option('--duration-gap', default=15, show_default=True,
+              help='Maximum difference of durations in minutes.')
+@_guard
+def duplicates_cmd(archive_dir, begin, end, commute, start_gap, duration_gap):
+    """Search the archive for potential duplicate activities."""
+    archive = load_archive(Path(archive_dir).expanduser())
+    entries = [e for e in archive.entries
+               if render.in_range(e, begin, end) and (commute or not e.commute)]
+    pairs = find_duplicates(entries, start_gap=timedelta(minutes=start_gap),
+                            duration_gap=timedelta(minutes=duration_gap))
+    for first, second in pairs:
+        click.echo('\nPotential duplicates:')
+        for entry in (first, second):
+            click.echo(entry.link or f'No i.icu link available for {entry.id}')
+    click.echo(f'\nFound {len(pairs)} potential duplicate(s).')
+
+
+@main.command('balance')
+@click.option('-a', '--activity', 'activity_id', required=True, help='Activity ID.')
+@click.option('-o', '--output', type=click.Path(dir_okay=False),
+              help='PNG file (default: ./balance-<activity>.png).')
+@click.option('--show', is_flag=True, help='Also open an interactive plot window.')
+@click.option('--env', 'env_file', type=click.Path(dir_okay=False),
+              help='.env file with the credentials (default: ./.env, then authinfo).')
+@_guard
+def balance_cmd(activity_id, output, show, env_file):
+    """Plot the left/right power balance of an activity (needs the `balance` extra)."""
+    try:
+        from iicu_activity_journal.balance import plot_balance
+    except ImportError as err:
+        raise click.ClickException(
+            'Install the extra requirements: pip install "iicu_activity_journal[balance]"'
+        ) from err
+    session = Session('.', env_file, None, True)
+    target = Path(output) if output else Path(f'balance-{activity_id}.png')
+    try:
+        plot_balance(session.client, activity_id, target, show)
+    except RuntimeError as err:
+        raise click.ClickException(str(err)) from err
+    click.echo(f'Plot written to {target}.')
 
 
 if __name__ == '__main__':

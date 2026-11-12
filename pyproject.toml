@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "iicu_activity_journal"
-version = "0.6.0"
+version = "0.7.0"
 authors = [
   { name="yokuha", email="jokuha@icloud.com" },
 ]
@@ -17,6 +17,7 @@ dependencies = [
   "click",
   "mdutils",
   "requests",
+  "tomli; python_version < '3.11'",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -33,11 +34,6 @@ issues = "https://github.com/yokuha/activity-journal/issues"
 
 [project.scripts]
 iicu-journal = "iicu_activity_journal.cli:main"
-# Legacy commands, replaced by `iicu-journal` in the next steps.
-iicu-activity-journal-create = "iicu_activity_journal.create:main"
-iicu-activity-journal-update-data = "iicu_activity_journal.update_data:main"
-iicu-activity-journal-balance = "iicu_activity_journal.plot_balance:main"
-iicu-activity-journal-duplicates = "iicu_activity_journal.duplicates:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

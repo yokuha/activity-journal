@@ -2,6 +2,8 @@
 archive/
 backup/
 /logbook-*
+/journal-*
+/balance-*.png
 /README.pdf
 .DS_Store
 

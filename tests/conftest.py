@@ -62,4 +62,45 @@ def make_client():
     return make
 
 
+@pytest.fixture
+def archive_dir(tmp_path):
+    """A small synthetic archive (no real data)."""
+    from iicu_activity_journal.store import write_json_gz
+
+    root = tmp_path / 'archive'
+    write_json_gz(root / 'athlete.json.gz', {'athlete': {
+        'id': 'i1', 'name': 'tester', 'email': 'tester@example.org', 'bio': 'Line one\nLine two'}})
+    write_json_gz(root / 'activities.json.gz', [
+        {'id': 'i10', 'type': 'Ride', 'name': 'Morning ride', 'commute': False,
+         'start_date_local': '2026-05-02T08:00:00', 'elapsed_time': 5400,
+         'description': 'Nice day\nsecond line\n-- myWindsock Report\nnoise\nEND --',
+         'icu_average_watts': 180, 'icu_ftp': 250, 'icu_intensity': 72.4,
+         'avg_lr_balance': 51.2, 'icu_rpe': 4, 'calories': 900},
+        {'id': 'i11', 'type': 'Ride', 'name': 'To work', 'commute': True,
+         'start_date_local': '2026-05-03T07:00:00', 'elapsed_time': 1200},
+        {'id': 'i12', 'type': 'Run', 'name': 'Easy run', 'commute': False,
+         'start_date_local': '2026-05-04T18:00:00', 'elapsed_time': 3000,
+         'icu_intensity': 60.0},
+        {'id': '999', 'start_date_local': '2026-05-05T09:00:00',
+         '_note': 'STRAVA activities are not available via the API'},
+        {'id': 'i13', 'type': 'Run', 'name': 'Same run again', 'commute': False,
+         'start_date_local': '2026-05-04T18:05:00', 'elapsed_time': 3010},
+    ])
+    write_json_gz(root / 'activity-messages' / 'i10.json.gz', [
+        {'id': 1, 'name': 'tester', 'content': 'IICU-FOOD\nWater: 1 l', 'deleted': False},
+        {'id': 2, 'name': 'coach', 'content': 'photo', 'attachment_url': 'https://x/y.png'},
+        {'id': 3, 'name': 'coach', 'content': 'gone', 'deleted': True},
+    ])
+    write_json_gz(root / 'events.json.gz', [
+        {'id': 77, 'category': 'NOTE', 'name': 'Chain waxed',
+         'start_date_local': '2026-05-01T00:00:00', 'end_date_local': '2026-05-01T00:00:00',
+         'description': 'Waxed the chain'},
+        {'id': 78, 'category': 'HOLIDAY', 'name': 'Trip',
+         'start_date_local': '2026-04-20T00:00:00', 'end_date_local': '2026-04-27T00:00:00'},
+        {'id': 79, 'category': 'WORKOUT', 'name': 'Planned',
+         'start_date_local': '2026-05-09T00:00:00'},
+    ])
+    return root
+
+
 __all__ = ['FakeResponse', 'requests']

@@ -8,8 +8,9 @@ intervals.icu activities.
 
 1. Download or clone this package from github.
 2. Get your athlete ID and API key from the Developer settings at
-   https://intervals.icu/settings and add this entry to your encrypted
-   `~/.authinfo.gpg` file:
+   https://intervals.icu/settings and either set the environment variables
+   `INTERVALS_ICU_ATHLETE_ID` and `INTERVALS_ICU_API_KEY`, use a `.env` file,
+   or add this entry to your encrypted `~/.authinfo.gpg` file:
 
    ```text
    machine intervals.icu login your-athlete-id password your-api-key
@@ -26,10 +27,10 @@ You'll obviously need access to an account at https://intervals.icu – preferab
 your own or one of your client.
 
 In addition, you need a current Python installation with common packages, see
-`pyproject.toml` for details, and GnuPG (`gpg`) to decrypt the authinfo file.
+`pyproject.toml` for details, and, only if you use the authinfo file, GnuPG (`gpg`).
 
 
-# Archive (new)
+# Archive
 
 `iicu-journal archive all` saves your intervals.icu data as reproducible,
 gzip-compressed JSON files in the archive directory: `./archive` by default
@@ -56,24 +57,31 @@ repository; it contains personal data.
 
 # Usage
 
-Get your activities from i.icu and add them to your local database running
-`iicu-activity-journal-update-data`. By default, the updater removes local
-records inside the requested date range when Intervals.icu no longer returns
-them. Complete records are merged by ID into
-`logbook-<athlete-id>-historic-activity-data.json`; incomplete records without
-a name are deleted. Pass `--keep-missing` to retain both kinds of missing
-records in the active activity-data file instead.
+1. Archive your data: `iicu-journal archive all` (see above).
+2. Create the journal: `iicu-journal create`. It writes
+   `journal-<athlete-id>.md` to `--output-dir` (default: current directory)
+   and, via `pandoc` and LaTeX, a PDF of it (`--no-pandoc` for Markdown only).
+   The LaTeX installation must include the `twemojis` package so Unicode emoji
+   can be embedded as color vector artwork. All activities, calendar notes
+   (notes, races, holidays, injuries, sickness) and the notes/messages of every
+   activity are included; use `-c` to include commutes and `-b`/`-e` to limit
+   the date range.
+3. Optional: `iicu-journal duplicates` lists activities that start and end at
+   about the same time, `iicu-journal create -i` lists restricted or incomplete
+   activities (for example from Strava) that need to be fixed or imported at the
+   source before they can appear in the journal.
 
-Create a PDF file of the data using `iicu-activity-journal-create`; this script
-creates a markdown file of the data. It can also pass this through `pandoc`,
-using `LaTeX` to produce a PDF, which are thus necessary to obtain a PDF. The
-markdown file is always generated. The LaTeX installation must include the
-`twemojis` package so Unicode emoji can be embedded as color vector artwork.
+Personal settings live in an optional TOML file (`--config`, `IICU_JOURNAL_CONFIG`
+or `<archive dir>/journal.toml`):
 
-Run these scripts with `-h` options to obtain some basic help and a list of
-options. Pass `-i`/`--report-incomplete` to `iicu-activity-journal-create` to list
-restricted or incomplete activities that need to be fixed or imported at the
-source before they can appear in the journal.
+```toml
+author = "Your Name"        # shown in the document
+show_email = false          # print your profile e-mail address in the journal
+[name_aliases]              # display names of note authors
+your-intervals-username = "JK"
+```
+
+Run any command with `-h` for all options.
 
 
 # Further comments
@@ -87,5 +95,6 @@ or, preferably, create a pull request for improvements.
 Plotting L/R balance has further requirements, e.g., `matplotlib` and `scipy`.
 However, as this functionality is now routinely available in intervals.icu I do
 not want to impose these requirements on the general use of the activity
-journal. If you want to use the `...-balance` script, make sure to install these
-requirements manually. For standard use, they are not needed.
+journal. If you want to use the `balance` command, install them with
+`pip install "iicu_activity_journal[balance]"` and run
+`iicu-journal balance -a <activity-id>`. For standard use, they are not needed.
